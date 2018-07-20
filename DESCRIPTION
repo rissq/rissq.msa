@@ -4,10 +4,13 @@ Title: Measurement Systems Analysis with RISSQ
 Version: 0.1.0
 Authors@R: c(person("Emilio L.", "Cano", email = "emilio.lcano@uclm.es", 
                   role = c("aut", "cre")),
-             person("Manuel", "Alfaro", role = c("ctb"))
+             person("Manuel", "Alfaro", role = c("ctb")))
 Maintainer: Emilio L. Cano <emilio.lcano@uclm.es>
 Description: Performs Measurement Systems Analysis under the R Infrastructure for
   Quality Control (RISSQ), including Gage R&R studies (crossed, nested, unbalanced).
 License: GPL (>= 2)
 Encoding: UTF-8
 LazyData: true
+Imports:
+  rissq
+RoxygenNote: 6.0.1
