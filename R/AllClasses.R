@@ -5,18 +5,18 @@
                    variable = "character",
                    part = "factor",
                    appraiser = "factor",
-                   data = "data.frame",
                    usl = "numeric",
                    lsl = "numeric",
                    tolerance = "numeric",
                    sigma = "numeric",
                    alphaLim = "numeric",
-                   errorTerm = "character",
                    digits = "numeric",
                    lvlPart = "numeric",
                    lvlAppr = "numeric",
                    n = "numeric",
-                   anova = "list"
+                   anova = "list",
+                   varianceComponents = "matrix",
+                   numberCategories = "numeric"
                  ),
                  contains = "Analysis"
 )

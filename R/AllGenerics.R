@@ -1,7 +1,15 @@
-#' Generic for Anova Study.
-#' @name anovaStudy
+#' Generic for Anova MSA Study.
+#' @name anovaMSA
 #' @export
 setGeneric (
-  name = "anovaStudy",
-  def = function(object){ standardGeneric("anovaStudy") }
+  name = "anovaMSA",
+  def = function(object){ standardGeneric("anovaMSA") }
+)
+
+#' Generic for Gage rar MSA Study.
+#' @name rar
+#' @export
+setGeneric (
+  name = "rar",
+  def = function(object){ standardGeneric("rar") }
 )

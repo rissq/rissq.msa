@@ -6,9 +6,7 @@
 \title{constructor for MSA}
 \usage{
 \S4method{initialize}{MSA}(.Object, ..., id, name, description, pro, variable,
-  part, appraiser, data, usl = NA_real_, lsl = NA_real_,
-  tolerance = NA_real_, sigma = 6, alphaLim = 0.05,
-  errorTerm = "interaction", digits = 4)
+  part, appraiser, data, usl, lsl, tolerance, sigma, alphaLim, digits)
 }
 \description{
 This is the constructor.

@@ -5,10 +5,8 @@
 \alias{initializeNestedMSA}
 \title{constructor for NestedMSA}
 \usage{
-\S4method{initialize}{NestedMSA}(.Object, ..., id, name, description,
-  pro = NA, variable, part, appraiser, data, usl = NA_real_,
-  lsl = NA_real_, tolerance = NA_real_, sigma = 6, alphaLim = 0.05,
-  errorTerm = "interaction", digits = 4)
+\S4method{initialize}{NestedMSA}(.Object, ..., id, name, description, pro,
+  variable, part, appraiser, data, usl, lsl, tolerance, sigma, alphaLim, digits)
 }
 \description{
 This is the constructor.
