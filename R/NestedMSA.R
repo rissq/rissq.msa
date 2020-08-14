@@ -62,7 +62,7 @@ setMethod("anovaMSA",
             ## Complete model (with interaction)
             modelf <- as.formula(paste(object@variable, "~", object@appraiser, "/", object@part))
 
-            model <- aov(modelf, data = object@pro@data)
+            model <- aov(modelf, data = object@data)
             modelm <- summary(model)
 
             rownames(modelm[[1]])[3] <- "REPEATIBILITY"
@@ -74,6 +74,7 @@ setMethod("anovaMSA",
 
             object@anova <- list(modelm[[1]])
 
+            show(object)
             return(object)
           })
 
@@ -119,5 +120,6 @@ setMethod("rar",
             #Number of distinct categories
             object@numberCategories <- max(c(1, floor((object@varianceComponents[4, 4]/object@varianceComponents[1, 4])*1.41)))
 
+            show(object)
             return(object)
           })
