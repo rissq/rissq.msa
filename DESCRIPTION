@@ -13,4 +13,4 @@ Encoding: UTF-8
 LazyData: true
 Imports:
   rissq
-RoxygenNote: 6.0.1
+RoxygenNote: 7.1.1

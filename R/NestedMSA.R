@@ -5,52 +5,23 @@
 #' @export
 setMethod("initialize",
           signature = signature(.Object = "NestedMSA"),
-          function(.Object, ..., id, name, description, pro, variable, part, appraiser, data, usl, lsl, tolerance, sigma, alphaLim, digits) {
+          function(.Object, ..., id, name, description, pro, characteristic, data, tolerance, sigma, alphaLim) {
 
-            #Checks missing names for columns
-            if(missing(part) || missing(appraiser) || missing(variable)) {
-              stop("Part, appraiser and measured variable must be specified.")
-            }
+            headers <- names(data@data)
 
-            #Set all names to upper case to avoid problems when introducing column names for variables manually
-            data <- setNames(data, toupper(names(data)))
-            part <- toupper(part)
-            appraiser <- toupper(appraiser)
-            variable <- toupper(variable)
-
-            #Checks if names are correctly introduced
-            if (is.data.frame(data)){
-              #Check for result variable
-              if (!(variable %in% names(data))) {
-                stop(variable, " is not a valid column name for ", deparse(substitute(data)))
-              }
-
-              #Checks for part, and convert column values to factors
-              if (part %in% names(data)) {
-                data[[part]] <- factor(data[[part]])
-              } else{
-                stop(part, " is not a valid column name for", deparse(substitute(data)))
-              }
-
-              #Checks for appraiser, and convert column values to factors
-              if (appraiser %in% names(data)) {
-                data[[appraiser]] <- factor(data[[appraiser]])
-              } else{
-                stop(appraiser, "is not a valid column name for", deparse(substitute(data)))
-              }
-            } else {
-              stop("A data.frame object is needed as data argument")
-            }
-
-            part <- as.factor(part)
-            appraiser <- as.factor(appraiser)
+            part <- as.factor(headers[1])
+            appraiser <- as.factor(headers[2])
 
             #Number of parts levels and replicates
-            lvlPart = nlevels(data[[part]])
-            lvlAppr = nlevels(data[[appraiser]])
-            n = nrow(data)/lvlPart
+            lvlPart = nlevels(data@data[[part]])
+            lvlAppr = nlevels(data@data[[appraiser]])
+            n = nrow(data@data)/lvlPart
 
-            callNextMethod(.Object, ..., id = id, name = name, description = description, pro = pro, variable = variable, part = part, appraiser = appraiser, data = data, usl = usl, lsl = lsl, sigma = sigma, alphaLim = alphaLim, digits = digits, lvlPart = lvlPart, lvlAppr = lvlAppr, n = n)
+            .Object <- callNextMethod(.Object, ..., id = id, name = name, description = description, pro = pro, characteristic = characteristic, data = data, tolerance = tolerance, sigma = sigma, alphaLim = alphaLim, lvlPart = lvlPart, lvlAppr = lvlAppr, n = n)
+
+            #If data is rady calculations are made on the initialization method call
+            .Object <- anovaMSA(.Object)
+            .Object <- rar(.Object)
           })
 
 #' Anova study for Nested MSA
@@ -59,10 +30,16 @@ setMethod("initialize",
 setMethod("anovaMSA",
           signature = signature(object = "NestedMSA"),
           function(object){
-            ## Complete model (with interaction)
-            modelf <- as.formula(paste(object@variable, "~", object@appraiser, "/", object@part))
+            headers <- names(object@data@data)
 
-            model <- aov(modelf, data = object@data)
+            part <- headers[1]
+            appraiser <- headers[2]
+            variable <- headers[3]
+
+            ## Complete model (with interaction)
+            modelf <- as.formula(paste(variable, "~", appraiser, "/", part))
+
+            model <- aov(modelf, data = object@data@data)
             modelm <- summary(model)
 
             rownames(modelm[[1]])[3] <- "REPEATIBILITY"
@@ -85,6 +62,8 @@ setMethod("anovaMSA",
 setMethod("rar",
           signature = signature(object = "NestedMSA"),
           function(object){
+
+            ## if anova is not stored we calcute it
             if(!length(object@anova)) {
               object <- anovaMSA(object)
             }

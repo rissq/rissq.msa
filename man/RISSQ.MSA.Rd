@@ -3,7 +3,6 @@
 \docType{package}
 \name{RISSQ.MSA}
 \alias{RISSQ.MSA}
-\alias{RISSQ.MSA-package}
 \title{Measurement System Analysis - R Infraestucture for Statistical Standards on Quality}
 \description{
 Measurement System Analysis - R Infraestucture for Statistical Standards on Quality

@@ -2,11 +2,11 @@
 #' @exportClass MSA
 .MSA <- setClass("MSA",
                  slots = c(
-                   variable = "character",
-                   part = "factor",
-                   appraiser = "factor",
-                   usl = "numeric",
-                   lsl = "numeric",
+                   # variable = "character",
+                   # part = "factor",
+                   # appraiser = "factor",
+                   # usl = "numeric",
+                   # lsl = "numeric",
                    tolerance = "numeric",
                    sigma = "numeric",
                    alphaLim = "numeric",
