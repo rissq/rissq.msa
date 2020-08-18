@@ -12,6 +12,9 @@ setMethod("initialize",
             part <- as.factor(headers[1])
             appraiser <- as.factor(headers[2])
 
+            data@data[[part]] <- factor(data@data[[part]])
+            data@data[[appraiser]] <- factor(data@data[[appraiser]])
+
             #Number of parts levels and replicates
             lvlPart = nlevels(data@data[[part]])
             lvlAppr = nlevels(data@data[[appraiser]])
@@ -98,6 +101,83 @@ setMethod("rar",
 
             #Number of distinct categories
             object@numberCategories <- max(c(1, floor((object@varianceComponents[4, 4]/object@varianceComponents[1, 4])*1.41)))
+
+            show(object)
+            return(object)
+          })
+
+#' MSA resume Chart
+#' @name plot
+#' @export
+setMethod("plot",
+          signature = signature(object = "NestedMSA"),
+          function(object){
+
+            show(object)
+            return(object)
+          })
+
+#' Components of Variation Chart
+#' @name plotComponentOfVariation
+#' @export
+setMethod("plotComponentOfVariation",
+          signature = signature(object = "NestedMSA"),
+          function(object){
+
+            show(object)
+            return(object)
+          })
+
+#' Variable by Part
+#' @name plotVariableByPart
+#' @export
+setMethod("plotVariableByPart",
+          signature = signature(object = "NestedMSA"),
+          function(object){
+
+            show(object)
+            return(object)
+          })
+
+#' Variable by Appraiser
+#' @name plotVariableByAppraiser
+#' @export
+setMethod("plotVariableByAppraiser",
+          signature = signature(object = "NestedMSA"),
+          function(object){
+
+            show(object)
+            return(object)
+          })
+
+#' Control Chart
+#' @name plotComponentOfVariation
+#' @export
+setMethod("plotControl",
+          signature = signature(object = "NestedMSA"),
+          function(object){
+
+            show(object)
+            return(object)
+          })
+
+#' Mean Chart
+#' @name plotMean
+#' @export
+setMethod("plotMean",
+          signature = signature(object = "NestedMSA"),
+          function(object){
+
+            show(object)
+            return(object)
+          })
+
+#' Range Chart
+#' @name plotRange
+#' @export
+setMethod("plotRange",
+          signature = signature(object = "NestedMSA"),
+          function(object){
 
             show(object)
             return(object)
