@@ -253,6 +253,6 @@ setMethod("plotMean",
 setMethod("plotRange",
           signature = signature(object = "NestedMSA"),
           function(object){
-
+            print("TEST")
             return(object)
           })
