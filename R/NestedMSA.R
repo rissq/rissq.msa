@@ -54,7 +54,6 @@ setMethod("anovaMSA",
 
             object@anova <- list(modelm[[1]])
 
-            show(object)
             return(object)
           })
 
@@ -102,18 +101,6 @@ setMethod("rar",
             #Number of distinct categories
             object@numberCategories <- max(c(1, floor((object@varianceComponents[4, 4]/object@varianceComponents[1, 4])*1.41)))
 
-            show(object)
-            return(object)
-          })
-
-#' MSA resume Chart
-#' @name plot
-#' @export
-setMethod("plot",
-          signature = signature(object = "NestedMSA"),
-          function(object){
-
-            show(object)
             return(object)
           })
 
@@ -124,8 +111,29 @@ setMethod("plotComponentOfVariation",
           signature = signature(object = "NestedMSA"),
           function(object){
 
-            show(object)
-            return(object)
+            ## Set rows and cols to take from components of variation table to be printed
+            rows <- c(1,2,3,4)
+            rlabels <- c("G.R&R", "Repeat", "Reprod", "Part2Part")
+
+            if ((!is.na(object@characteristic@U) && !is.na(object@characteristic@U)) || !is.na(object@tolerance)) {
+              cols <- c(2, 5, 6)
+              clabels <- c("%Contribution", "%Study Var", "%Tolerance")
+            } else{
+              cols <- c(2, 5)
+              clabels <- c("%Contribution", "%Study Var")
+            }
+
+            chartData <- object@varianceComponents[rows,cols]
+            rownames(chartData) <- rlabels
+            colnames(chartData) <- clabels
+
+            plot <- barplot(height = t(chartData), beside = TRUE,
+                            main = "Components of Variation",
+                            legend.text = clabels, ylim = c(0,100), axes = TRUE)
+
+            grid()
+
+            return(plot)
           })
 
 #' Variable by Part
@@ -134,9 +142,19 @@ setMethod("plotComponentOfVariation",
 setMethod("plotVariableByPart",
           signature = signature(object = "NestedMSA"),
           function(object){
+            headers <- names(object@data@data)
 
-            show(object)
-            return(object)
+            part <- headers[1]
+            variable <- headers[3]
+
+            ## Formula for the chart
+            f <- as.formula(paste(variable, "~",  part))
+
+            plot <- stripchart(f, data = object@data@data, vertical = TRUE,
+                       method = "jitter", main = paste(variable, "by", part),
+                       xlab = part)
+
+            grid()
           })
 
 #' Variable by Appraiser
@@ -145,20 +163,18 @@ setMethod("plotVariableByPart",
 setMethod("plotVariableByAppraiser",
           signature = signature(object = "NestedMSA"),
           function(object){
+            headers <- names(object@data@data)
 
-            show(object)
-            return(object)
-          })
+            appraiser <- headers[2]
+            variable <- headers[3]
 
-#' Control Chart
-#' @name plotComponentOfVariation
-#' @export
-setMethod("plotControl",
-          signature = signature(object = "NestedMSA"),
-          function(object){
+            ## Formula for the chart
+            f <- as.formula(paste(variable, "~",  appraiser))
 
-            show(object)
-            return(object)
+            plot <- stripchart(f, data = object@data@data, vertical = TRUE,
+                               method = "jitter", main = paste(variable, "by", appraiser))
+
+            grid()
           })
 
 #' Mean Chart
@@ -167,9 +183,68 @@ setMethod("plotControl",
 setMethod("plotMean",
           signature = signature(object = "NestedMSA"),
           function(object){
+            headers <- names(object@data@data)
 
-            show(object)
-            return(object)
+            part <- headers[1]
+            appraiser <- headers[2]
+            variable <- headers[3]
+
+            ## Mean and range formula
+            f <- as.formula(paste(variable, "~", appraiser, "+", part))
+
+            rangeFunction <- function(x) {
+              max(x) - min(x)
+            }
+
+            xmean <- aggregate(f, data = object@data@data, mean)
+            xrange <- aggregate(f, data = object@data@data, rangeFunction)
+
+            ar <- mean(xrange[[variable]])
+
+            meanbar <- mean(object@data@data[[variable]], na.rm = TRUE)
+
+            ucl <- meanbar + (3/(ss.cc.getd2(object@n)*sqrt(object@n)))*ar
+            lcl <- meanbar - (3/(ss.cc.getd2(object@n)*sqrt(object@n)))*ar
+
+            glimits <- c(min(range(xmean[[variable]])[1], lcl),
+                         max(range(xmean[[variable]])[2], ucl)) +
+              c(-1, 1) * 0.1* diff(range(xmean[[variable]]))
+
+            ## Formula for chart
+            chartf <- as.formula(paste(variable, "~", part))
+
+            distinctAppraisers <- unique(xmean[[appraiser]])
+            minX <- min(xmean[[variable]])
+            maxX <- max(xmean[[variable]])
+
+            par_temp = par()
+            par(mfrow = c(1, length(distinctAppraisers)), mar=c(4,4,3,1)+0.1, xpd=FALSE)
+
+            for (i in seq_along(distinctAppraisers)) {
+              filterIndexs <- xmean[,1] == distinctAppraisers[[i]]
+
+              data = xmean[filterIndexs,]
+
+              ## To avoid boxplot to be printed instead of xyplot
+              data[[part]] <- as.numeric(levels(data[[part]]))[data[[part]]]
+
+              plot(x = data[[part]], y = data[[variable]], ylim = glimits, type = "b", pch = 1, ylab = paste(variable), xlab = paste(part), col = "blue")
+
+              title(distinctAppraisers[[i]])
+
+              grid()
+
+              abline(h = meanbar, col = 'grey', lty = 2)      # mean
+              abline(h = ucl, col = "red")
+              abline(h = lcl, col = "red")
+
+              text(y = meanbar, x = 1.35, expression(bold(bar(x))), cex=1, pos=3, col="grey")
+
+              text(y = ucl, x = 1.35, "UCL", cex=1, pos=3, col="red")
+              text(y = lcl, x = 1.35, "LCL", cex=1, pos=1, col="red")
+            }
+
+            par(par_temp)
           })
 
 #' Range Chart
@@ -179,6 +254,5 @@ setMethod("plotRange",
           signature = signature(object = "NestedMSA"),
           function(object){
 
-            show(object)
             return(object)
           })

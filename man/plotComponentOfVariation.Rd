@@ -7,13 +7,9 @@
 plotComponentOfVariation(object)
 
 \S4method{plotComponentOfVariation}{NestedMSA}(object)
-
-\S4method{plotControl}{NestedMSA}(object)
 }
 \description{
 Generic for plotting Component of Variation Chart
 
 Components of Variation Chart
-
-Control Chart
 }

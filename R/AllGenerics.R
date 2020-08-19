@@ -14,14 +14,6 @@ setGeneric (
   def = function(object){ standardGeneric("rar") }
 )
 
-#' Generic for plotting MSA Study resume
-#' @name plot
-#' @export
-setGeneric (
-  name = "plot",
-  def = function(object){ standardGeneric("plot") }
-)
-
 #' Generic for plotting Component of Variation Chart
 #' @name plotComponentOfVariation
 #' @export
@@ -52,14 +44,6 @@ setGeneric (
 setGeneric (
   name = "plotInteraction",
   def = function(object){ standardGeneric("plotInteraction") }
-)
-
-#' Generic for plotting Control Chart
-#' @name plotControl
-#' @export
-setGeneric (
-  name = "plotControl",
-  def = function(object){ standardGeneric("plotControl") }
 )
 
 #' Generic for plotting Mean Chart
