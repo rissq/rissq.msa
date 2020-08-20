@@ -1,10 +1,10 @@
-#' constructor for NestedMSA
+#' constructor for BaseMSA
 #'
 #' This is the constructor.
-#' @name initializeNestedMSA
+#' @name initializeBaseMSA
 #' @export
 setMethod("initialize",
-          signature = signature(.Object = "NestedMSA"),
+          signature = signature(.Object = "BaseMSA"),
           function(.Object, ..., id, name, description, pro, characteristic, data, tolerance, sigma, alphaLim) {
 
             headers <- names(data@data)
@@ -24,11 +24,11 @@ setMethod("initialize",
 
             #If data is ready calculations are made on the initialization method call
             if (missing(pro)) {
-              message("[NestedMSA: validation] .Pro to be analysed is not presented. Anova and R&R methods must be executed manually after getting it." )
+              message("[BaseMSA: validation] .Pro to be analysed is not presented. Anova and R&R methods must be executed manually after getting it." )
             } else if (missing(characteristic)) {
-              message("[NestedMSA: validation] .Characteristic to be analysed is not presented. Anova and R&R methods must be executed manually after getting it." )
+              message("[BaseMSA: validation] .Characteristic to be analysed is not presented. Anova and R&R methods must be executed manually after getting it." )
             } else if (missing(data)) {
-              message("[NestedMSA: validation] .ProData to be analysed is not presented. Anova and R&R methods must be executed manually after getting it." )
+              message("[BaseMSA: validation] .ProData to be analysed is not presented. Anova and R&R methods must be executed manually after getting it." )
             } else {
               .Object <- anovaMSA(.Object)
               .Object <- rar(.Object)
@@ -36,11 +36,11 @@ setMethod("initialize",
 
           })
 
-#' Anova study for Nested MSA
+#' Anova study for Base MSA
 #' @name anovaMSA
 #' @export
 setMethod("anovaMSA",
-          signature = signature(object = "NestedMSA"),
+          signature = signature(object = "BaseMSA"),
           function(object){
             headers <- names(object@data@data)
 
@@ -53,10 +53,6 @@ setMethod("anovaMSA",
 
             model <- aov(modelf, data = object@data@data)
             modelm <- summary(model)
-
-            #
-            # HERE WILL BE ERROR TERM IMPLEMENTATION
-            #
 
             rownames(modelm[[1]])[3] <- "REPEATIBILITY"
 
@@ -71,11 +67,11 @@ setMethod("anovaMSA",
           })
 
 
-#' Gage rar for Nested MSA
+#' Gage rar for Base MSA
 #' @name rar
 #' @export
 setMethod("rar",
-          signature = signature(object = "NestedMSA"),
+          signature = signature(object = "BaseMSA"),
           function(object){
 
             ## if anova is not stored we calcute it
@@ -89,7 +85,7 @@ setMethod("rar",
 
             colnames(object@varianceComponents) <- c("VarComp", "%Contrib", "StdDev", "StudyVar", "%StudyVar", "%Tolerance")
 
-            ## Variance Components Table
+            #Variance Components Table
             #Repeatibility
             object@varianceComponents[2, 1] <- object@anova[[1]][3, 3]
             #Total reproducibility
@@ -121,7 +117,7 @@ setMethod("rar",
 #' @name plotComponentOfVariationChart
 #' @export
 setMethod("plotComponentOfVariationChart",
-          signature = signature(object = "NestedMSA"),
+          signature = signature(object = "BaseMSA"),
           function(object){
 
             ## Set rows and cols to take from components of variation table to be printed
@@ -153,7 +149,7 @@ setMethod("plotComponentOfVariationChart",
 #' @name plotVariableByPartChart
 #' @export
 setMethod("plotVariableByPartChart",
-          signature = signature(object = "NestedMSA"),
+          signature = signature(object = "BaseMSA"),
           function(object){
             headers <- names(object@data@data)
 
@@ -164,8 +160,8 @@ setMethod("plotVariableByPartChart",
             f <- as.formula(paste(variable, "~",  part))
 
             plot <- stripchart(f, data = object@data@data, vertical = TRUE,
-                       method = "jitter", main = paste(variable, "by", part),
-                       xlab = part)
+                               method = "jitter", main = paste(variable, "by", part),
+                               xlab = part)
 
             grid()
           })
@@ -174,7 +170,7 @@ setMethod("plotVariableByPartChart",
 #' @name plotVariableByAppraiserChart
 #' @export
 setMethod("plotVariableByAppraiserChart",
-          signature = signature(object = "NestedMSA"),
+          signature = signature(object = "BaseMSA"),
           function(object){
             headers <- names(object@data@data)
 
@@ -194,7 +190,7 @@ setMethod("plotVariableByAppraiserChart",
 #' @name plotMeanChart
 #' @export
 setMethod("plotMeanChart",
-          signature = signature(object = "NestedMSA"),
+          signature = signature(object = "BaseMSA"),
           function(object){
             headers <- names(object@data@data)
 
@@ -220,7 +216,7 @@ setMethod("plotMeanChart",
             lcl <- meanbar - (3/(ss.cc.getd2(object@n)*sqrt(object@n)))*averageRange
 
             graphLimits <- c(min(range(xmean[[variable]])[1], lcl),
-                         max(range(xmean[[variable]])[2], ucl)) +
+                             max(range(xmean[[variable]])[2], ucl)) +
               c(-1, 1) * 0.1* diff(range(xmean[[variable]]))
 
             ## Formula for chart
@@ -269,7 +265,7 @@ setMethod("plotMeanChart",
 #' @name plotRangeChart
 #' @export
 setMethod("plotRangeChart",
-          signature = signature(object = "NestedMSA"),
+          signature = signature(object = "BaseMSA"),
           function(object){
             headers <- names(object@data@data)
 
@@ -297,7 +293,7 @@ setMethod("plotRangeChart",
 
             ## Graph limits
             graphLimits <- c(min(range(xrange[[variable]])[1], lrl),
-                         max(range(xrange[[variable]])[2], url)) +
+                             max(range(xrange[[variable]])[2], url)) +
               c(-1, 1) * 0.1 * diff(range(xrange[[variable]]))
 
             ## Ploting

@@ -2,11 +2,6 @@
 #' @exportClass MSA
 .MSA <- setClass("MSA",
                  slots = c(
-                   # variable = "character",
-                   # part = "factor",
-                   # appraiser = "factor",
-                   # usl = "numeric",
-                   # lsl = "numeric",
                    tolerance = "numeric",
                    sigma = "numeric",
                    alphaLim = "numeric",
@@ -21,14 +16,23 @@
                  contains = "Analysis"
 )
 
+#' @export .BaseMSA
+#' @exportClass BaseMSA
+.BaseMSA <- setClass("BaseMSA",
+                        contains = "MSA"
+)
+
 #' @export .NestedMSA
 #' @exportClass NestedMSA
 .NestedMSA <- setClass("NestedMSA",
-                 contains = "MSA"
+                        contains = "MSA"
 )
 
 #' @export .CrossedMSA
 #' @exportClass CrossedMSA
 .CrossedMSA <- setClass("CrossedMSA",
-                 contains = "MSA"
+                          slots = c(
+                            anovaReduced = "list"
+                          ),
+                          contains = "MSA"
 )

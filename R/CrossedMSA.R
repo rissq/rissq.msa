@@ -1,10 +1,10 @@
-#' constructor for NestedMSA
+#' constructor for CrossedMSA
 #'
 #' This is the constructor.
-#' @name initializeNestedMSA
+#' @name initializeCrossedMSA
 #' @export
 setMethod("initialize",
-          signature = signature(.Object = "NestedMSA"),
+          signature = signature(.Object = "CrossedMSA"),
           function(.Object, ..., id, name, description, pro, characteristic, data, tolerance, sigma, alphaLim) {
 
             headers <- names(data@data)
@@ -15,32 +15,42 @@ setMethod("initialize",
             data@data[[part]] <- factor(data@data[[part]])
             data@data[[appraiser]] <- factor(data@data[[appraiser]])
 
-            #Number of parts levels and replicates
+            ## Number of parts levels and replicates
             lvlPart = nlevels(data@data[[part]])
             lvlAppr = nlevels(data@data[[appraiser]])
-            n = nrow(data@data)/lvlPart
+            n = nrow(data@data)/(lvlPart * lvlAppr)
+
+            ## Checks for unbalanced designs
+            if (abs(n - round(n))) {
+              stop("[CrossedMSA: validation] Not balanced design.")
+            }
+
+            ## At least 2 measures by combination must be given
+            if (n < 2) {
+              stop("[CrossedMSA: validation] Not enough number of replications ")
+            }
+
 
             .Object <- callNextMethod(.Object, ..., id = id, name = name, description = description, pro = pro, characteristic = characteristic, data = data, tolerance = tolerance, sigma = sigma, alphaLim = alphaLim, lvlPart = lvlPart, lvlAppr = lvlAppr, n = n)
 
             #If data is ready calculations are made on the initialization method call
             if (missing(pro)) {
-              message("[NestedMSA: validation] .Pro to be analysed is not presented. Anova and R&R methods must be executed manually after getting it." )
+              message("[CrossedMSA: validation] .Pro to be analysed is not presented. Anova and R&R methods must be executed manually after getting it." )
             } else if (missing(characteristic)) {
-              message("[NestedMSA: validation] .Characteristic to be analysed is not presented. Anova and R&R methods must be executed manually after getting it." )
+              message("[CrossedMSA: validation] .Characteristic to be analysed is not presented. Anova and R&R methods must be executed manually after getting it." )
             } else if (missing(data)) {
-              message("[NestedMSA: validation] .ProData to be analysed is not presented. Anova and R&R methods must be executed manually after getting it." )
+              message("[CrossedMSA: validation] .ProData to be analysed is not presented. Anova and R&R methods must be executed manually after getting it." )
             } else {
               .Object <- anovaMSA(.Object)
               .Object <- rar(.Object)
             }
-
           })
 
-#' Anova study for Nested MSA
+#' Anova study for Crossed MSA
 #' @name anovaMSA
 #' @export
 setMethod("anovaMSA",
-          signature = signature(object = "NestedMSA"),
+          signature = signature(object = "CrossedMSA"),
           function(object){
             headers <- names(object@data@data)
 
@@ -49,7 +59,7 @@ setMethod("anovaMSA",
             variable <- headers[3]
 
             ## Complete model (with interaction)
-            modelf <- as.formula(paste(variable, "~", appraiser, "/", part))
+            modelf <- as.formula(paste(variable, "~", appraiser, "*", part))
 
             model <- aov(modelf, data = object@data@data)
             modelm <- summary(model)
@@ -58,61 +68,100 @@ setMethod("anovaMSA",
             # HERE WILL BE ERROR TERM IMPLEMENTATION
             #
 
-            rownames(modelm[[1]])[3] <- "REPEATIBILITY"
+            rownames(modelm[[1]])[4] <- "REPEATIBILITY"
 
-            #Total row for Df and SumSq
+            ## Total row for Df and SumSq
             modelm[[1]] <- rbind(modelm[[1]], c(colSums(modelm[[1]][, 1:2]), rep(NA, 3)))
 
-            rownames(modelm[[1]])[4] <- "TOTAL"
+            rownames(modelm[[1]])[5] <- "TOTAL"
 
             object@anova <- list(modelm[[1]])
+
+            ## F test for interaction
+            p <- modelm[[1]][3,5]
+
+            ## REDUCED MODEL
+            ## If P is bigger than the alpha limit interaction is removed
+            if (p > object@alphaLim) {
+              reducedModelf <- as.formula(paste(variable, "~", part, "+", appraiser))
+
+              reducedModel <- aouv(reducedModelf, data = object@data@data)
+              reducedModelm <- summary(reducedModel)
+
+              rownames(reducedModelm[[1]])[3] <- "REPEATIBILITY"
+
+              ## Total row for Df and SumSq
+              reducedModelm[[1]] <- rbind(reducedModelm[[1]], c(colSums(reducedModelm[[1]][, 1:2]), rep(NA, 3)))
+
+              reducedModelm(modelm[[1]])[4] <- "TOTAL"
+
+              object@anovaReduced <- list(reducedModelm[[1]])
+            }
 
             return(object)
           })
 
 
-#' Gage rar for Nested MSA
+#' Gage rar for Crossed MSA
 #' @name rar
 #' @export
 setMethod("rar",
-          signature = signature(object = "NestedMSA"),
+          signature = signature(object = "CrossedMSA"),
           function(object){
+
+            headers <- names(object@data@data)
+
+            part <- headers[1]
+            appraiser <- headers[2]
+            variable <- headers[3]
 
             ## if anova is not stored we calcute it
             if(!length(object@anova)) {
               object <- anovaMSA(object)
             }
 
-            object@varianceComponents = matrix(ncol = 6, nrow = 5)
+            object@varianceComponents = matrix(ncol = 6, nrow = 7)
 
-            rownames(object@varianceComponents) <- c("Total Gage R&R", "  Repeatability", "  Reproducibility", "Part-To-Part", "Total Variation")
+            rownames(object@varianceComponents) <- c("Total Gage R&R", "  Repeatability", "  Reproducibility", paste("Reproducibility by ", appraiser), paste("Reproducibility by ", part, ":", appraiser), "Part-To-Part", "Total Variation")
 
             colnames(object@varianceComponents) <- c("VarComp", "%Contrib", "StdDev", "StudyVar", "%StudyVar", "%Tolerance")
 
             ## Variance Components Table
             #Repeatibility
-            object@varianceComponents[2, 1] <- object@anova[[1]][3, 3]
+            object@varianceComponents[2, 1] <- object@anova[[1]][4, 3]
+            #Appraiser reproducibility
+            object@varianceComponents[4, 1] <- max(c((object@anova[[1]][2, 3] - object@anova[[1]][3, 3])/(object@lvlPart * object@n), 0))
+            #Part:Appraiser reproducibility
+            object@varianceComponents[5, 1] <- max(c((object@anova[[1]][3, 3] - object@anova[[1]][4, 3])/object@n, 0))
             #Total reproducibility
-            object@varianceComponents[3, 1] <- max(c((object@anova[[1]][1, 1] * (object@anova[[1]][1, 3] - object@anova[[1]][2, 3]) / (object@lvlPart * object@n)), 0))
+            object@varianceComponents[3, 1] <- object@varianceComponents[4, 1] + object@varianceComponents[5, 1]
             #Part to part
-            object@varianceComponents[4, 1] <- max(c((object@anova[[1]][2, 3] - object@anova[[1]][3, 3]) / object@n, 0))
+            object@varianceComponents[6, 1] <- max(c((object@anova[[1]][1, 3] - object@anova[[1]][3, 3]) / (object@lvlAppr / object@n), 0))
             #Totat Gage rar
             object@varianceComponents[1, 1] <- object@varianceComponents[2, 1] + object@varianceComponents[3, 1]
             #Total variation
-            object@varianceComponents[5, 1] <- object@varianceComponents[1, 1] + object@varianceComponents[4, 1]
+            object@varianceComponents[7, 1] <- object@varianceComponents[1, 1] + object@varianceComponents[6, 1]
+
             #%Contrib
-            object@varianceComponents[, 2] <- round(100 * (object@varianceComponents[, 1]/object@varianceComponents[5, 1]), 2)
+            object@varianceComponents[, 2] <- round(100 * (object@varianceComponents[, 1]/object@varianceComponents[7, 1]), 2)
             #Standard Deviation
             object@varianceComponents[, 3] <- sqrt(object@varianceComponents[, 1])
             #Study Variation edited from 5.15 to variable
             object@varianceComponents[, 4] <- object@varianceComponents[, 3] * object@sigma
-            #
-            object@varianceComponents[, 5] <- round(100 * (object@varianceComponents[, 3]/object@varianceComponents[5, 3]), 2)
-            #
+            #%Study Variation
+            object@varianceComponents[, 5] <- round(100 * (object@varianceComponents[, 3]/object@varianceComponents[7, 3]), 2)
+            #StudyVar/Tolerance
             object@varianceComponents[, 6] <- round(100 * (object@varianceComponents[, 4]/(object@tolerance)), 2)
 
             #Number of distinct categories
-            object@numberCategories <- max(c(1, floor((object@varianceComponents[4, 4]/object@varianceComponents[1, 4])*1.41)))
+            object@numberCategories <- max(c(1, floor((object@varianceComponents[6, 4]/object@varianceComponents[1, 4])*1.41)))
+
+            ## If reduced model, remove interaction
+            p <- object@anova[[1]][3, 5]
+
+            if (p > object@alphaLim){
+              object@varianceComponents <- object@varianceComponents[-c(5), ]
+            }
 
             return(object)
           })
@@ -121,11 +170,18 @@ setMethod("rar",
 #' @name plotComponentOfVariationChart
 #' @export
 setMethod("plotComponentOfVariationChart",
-          signature = signature(object = "NestedMSA"),
+          signature = signature(object = "CrossedMSA"),
           function(object){
 
             ## Set rows and cols to take from components of variation table to be printed
-            rows <- c(1,2,3,4)
+            p <- object@anova[[1]][3, 5]
+
+            if (p > object@alphaLim){
+              rows <- c(1,2,3,5)
+            } else {
+              rows <- c(1,2,3,6)
+            }
+
             rlabels <- c("G.R&R", "Repeat", "Reprod", "Part2Part")
 
             if ((!is.na(object@characteristic@U) && !is.na(object@characteristic@U)) || !is.na(object@tolerance)) {
@@ -153,7 +209,7 @@ setMethod("plotComponentOfVariationChart",
 #' @name plotVariableByPartChart
 #' @export
 setMethod("plotVariableByPartChart",
-          signature = signature(object = "NestedMSA"),
+          signature = signature(object = "CrossedMSA"),
           function(object){
             headers <- names(object@data@data)
 
@@ -164,8 +220,8 @@ setMethod("plotVariableByPartChart",
             f <- as.formula(paste(variable, "~",  part))
 
             plot <- stripchart(f, data = object@data@data, vertical = TRUE,
-                       method = "jitter", main = paste(variable, "by", part),
-                       xlab = part)
+                               method = "jitter", main = paste(variable, "by", part),
+                               xlab = part)
 
             grid()
           })
@@ -174,7 +230,7 @@ setMethod("plotVariableByPartChart",
 #' @name plotVariableByAppraiserChart
 #' @export
 setMethod("plotVariableByAppraiserChart",
-          signature = signature(object = "NestedMSA"),
+          signature = signature(object = "CrossedMSA"),
           function(object){
             headers <- names(object@data@data)
 
@@ -190,11 +246,34 @@ setMethod("plotVariableByAppraiserChart",
             grid()
           })
 
+#' Interaction
+#' @name plotInteractionChart
+#' @export
+setMethod("plotInteractionChart",
+          signature = signature(object = "CrossedMSA"),
+          function(object){
+            headers <- names(object@data@data)
+
+            appraiser <- headers[2]
+            variable <- headers[3]
+
+            ## Formula for the chart
+            f <- as.formula(paste(variable, "~",  appraiser, "+", part))
+
+            data <- aggregate(f, data = object@data@data, mean)
+
+            print(data)
+
+            plot <- plot(f, data = data, pch = 1, type = c("p", "a"), main = paste(part, ":", apprariser, " Interaction"))
+
+            grid()
+          })
+
 #' Mean Chart
 #' @name plotMeanChart
 #' @export
 setMethod("plotMeanChart",
-          signature = signature(object = "NestedMSA"),
+          signature = signature(object = "CrossedMSA"),
           function(object){
             headers <- names(object@data@data)
 
@@ -220,7 +299,7 @@ setMethod("plotMeanChart",
             lcl <- meanbar - (3/(ss.cc.getd2(object@n)*sqrt(object@n)))*averageRange
 
             graphLimits <- c(min(range(xmean[[variable]])[1], lcl),
-                         max(range(xmean[[variable]])[2], ucl)) +
+                             max(range(xmean[[variable]])[2], ucl)) +
               c(-1, 1) * 0.1* diff(range(xmean[[variable]]))
 
             ## Formula for chart
@@ -269,7 +348,7 @@ setMethod("plotMeanChart",
 #' @name plotRangeChart
 #' @export
 setMethod("plotRangeChart",
-          signature = signature(object = "NestedMSA"),
+          signature = signature(object = "CrossedMSA"),
           function(object){
             headers <- names(object@data@data)
 
@@ -297,7 +376,7 @@ setMethod("plotRangeChart",
 
             ## Graph limits
             graphLimits <- c(min(range(xrange[[variable]])[1], lrl),
-                         max(range(xrange[[variable]])[2], url)) +
+                             max(range(xrange[[variable]])[2], url)) +
               c(-1, 1) * 0.1 * diff(range(xrange[[variable]]))
 
             ## Ploting
