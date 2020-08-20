@@ -15,49 +15,49 @@ setGeneric (
 )
 
 #' Generic for plotting Component of Variation Chart
-#' @name plotComponentOfVariation
+#' @name plotComponentOfVariationChart
 #' @export
 setGeneric (
-  name = "plotComponentOfVariation",
-  def = function(object){ standardGeneric("plotComponentOfVariation") }
+  name = "plotComponentOfVariationChart",
+  def = function(object){ standardGeneric("plotComponentOfVariationChart") }
 )
 
 #' Generic for plotting Variable by Part Chart
-#' @name plotVariableByPart
+#' @name plotVariableByPartChart
 #' @export
 setGeneric (
-  name = "plotVariableByPart",
-  def = function(object){ standardGeneric("plotVariableByPart") }
+  name = "plotVariableByPartChart",
+  def = function(object){ standardGeneric("plotVariableByPartChart") }
 )
 
 #' Generic for plotting Variable by Appraiser Chart
-#' @name plotVariableByAppraiser
+#' @name plotVariableByAppraiserChart
 #' @export
 setGeneric (
-  name = "plotVariableByAppraiser",
-  def = function(object){ standardGeneric("plotVariableByAppraiser") }
+  name = "plotVariableByAppraiserChart",
+  def = function(object){ standardGeneric("plotVariableByAppraiserChart") }
 )
 
 #' Generic for plotting Interaction Chart
-#' @name plotInteraction
+#' @name plotInteractionChart
 #' @export
 setGeneric (
-  name = "plotInteraction",
-  def = function(object){ standardGeneric("plotInteraction") }
+  name = "plotInteractionChart",
+  def = function(object){ standardGeneric("plotInteractionChart") }
 )
 
 #' Generic for plotting Mean Chart
-#' @name plotMean
+#' @name plotMeanChart
 #' @export
 setGeneric (
-  name = "plotMean",
-  def = function(object){ standardGeneric("plotMean") }
+  name = "plotMeanChart",
+  def = function(object){ standardGeneric("plotMeanChart") }
 )
 
 #' Generic for plotting Range Chart
-#' @name plotRange
+#' @name plotRangeChart
 #' @export
 setGeneric (
-  name = "plotRange",
-  def = function(object){ standardGeneric("plotRange") }
+  name = "plotRangeChart",
+  def = function(object){ standardGeneric("plotRangeChart") }
 )

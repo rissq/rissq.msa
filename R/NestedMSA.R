@@ -105,9 +105,9 @@ setMethod("rar",
           })
 
 #' Components of Variation Chart
-#' @name plotComponentOfVariation
+#' @name plotComponentOfVariationChart
 #' @export
-setMethod("plotComponentOfVariation",
+setMethod("plotComponentOfVariationChart",
           signature = signature(object = "NestedMSA"),
           function(object){
 
@@ -137,9 +137,9 @@ setMethod("plotComponentOfVariation",
           })
 
 #' Variable by Part
-#' @name plotVariableByPart
+#' @name plotVariableByPartChart
 #' @export
-setMethod("plotVariableByPart",
+setMethod("plotVariableByPartChart",
           signature = signature(object = "NestedMSA"),
           function(object){
             headers <- names(object@data@data)
@@ -158,9 +158,9 @@ setMethod("plotVariableByPart",
           })
 
 #' Variable by Appraiser
-#' @name plotVariableByAppraiser
+#' @name plotVariableByAppraiserChart
 #' @export
-setMethod("plotVariableByAppraiser",
+setMethod("plotVariableByAppraiserChart",
           signature = signature(object = "NestedMSA"),
           function(object){
             headers <- names(object@data@data)
@@ -178,9 +178,9 @@ setMethod("plotVariableByAppraiser",
           })
 
 #' Mean Chart
-#' @name plotMean
+#' @name plotMeanChart
 #' @export
-setMethod("plotMean",
+setMethod("plotMeanChart",
           signature = signature(object = "NestedMSA"),
           function(object){
             headers <- names(object@data@data)
@@ -199,26 +199,28 @@ setMethod("plotMean",
             xmean <- aggregate(f, data = object@data@data, mean)
             xrange <- aggregate(f, data = object@data@data, rangeFunction)
 
-            ar <- mean(xrange[[variable]])
+            averageRange <- mean(xrange[[variable]])
 
             meanbar <- mean(object@data@data[[variable]], na.rm = TRUE)
 
-            ucl <- meanbar + (3/(ss.cc.getd2(object@n)*sqrt(object@n)))*ar
-            lcl <- meanbar - (3/(ss.cc.getd2(object@n)*sqrt(object@n)))*ar
+            ucl <- meanbar + (3/(ss.cc.getd2(object@n)*sqrt(object@n)))*averageRange
+            lcl <- meanbar - (3/(ss.cc.getd2(object@n)*sqrt(object@n)))*averageRange
 
-            glimits <- c(min(range(xmean[[variable]])[1], lcl),
+            graphLimits <- c(min(range(xmean[[variable]])[1], lcl),
                          max(range(xmean[[variable]])[2], ucl)) +
               c(-1, 1) * 0.1* diff(range(xmean[[variable]]))
 
             ## Formula for chart
-            chartf <- as.formula(paste(variable, "~", part))
+            #chartf <- as.formula(paste(variable, "~", part))
 
+            ## Plotting
             distinctAppraisers <- unique(xmean[[appraiser]])
             minX <- min(xmean[[variable]])
             maxX <- max(xmean[[variable]])
 
+            ## Save te previous layout to restore it after printing the plot
             par_temp = par()
-            par(mfrow = c(1, length(distinctAppraisers)), mar=c(4,4,3,1)+0.1, xpd=FALSE)
+            par(mfrow = c(1, length(distinctAppraisers)), mar=c(5,4,7,2)+0.1, xpd=FALSE)
 
             for (i in seq_along(distinctAppraisers)) {
               filterIndexs <- xmean[,1] == distinctAppraisers[[i]]
@@ -228,9 +230,9 @@ setMethod("plotMean",
               ## To avoid boxplot to be printed instead of xyplot
               data[[part]] <- as.numeric(levels(data[[part]]))[data[[part]]]
 
-              plot(x = data[[part]], y = data[[variable]], ylim = glimits, type = "b", pch = 1, ylab = paste(variable), xlab = paste(part), col = "blue")
+              plot(x = data[[part]], y = data[[variable]], ylim = graphLimits, type = "b", pch = 1, ylab = paste(variable), xlab = paste(part), col = "blue")
 
-              title(distinctAppraisers[[i]])
+              title(distinctAppraisers[[i]], line = 1)
 
               grid()
 
@@ -238,21 +240,88 @@ setMethod("plotMean",
               abline(h = ucl, col = "red")
               abline(h = lcl, col = "red")
 
-              text(y = meanbar, x = 1.35, expression(bold(bar(x))), cex=1, pos=3, col="grey")
+              text(y = meanbar, x = 1.35, expression(bold(bar(X))), cex=1, pos=3, col="grey")
 
               text(y = ucl, x = 1.35, "UCL", cex=1, pos=3, col="red")
               text(y = lcl, x = 1.35, "LCL", cex=1, pos=1, col="red")
             }
 
+            mtext(paste("Mean Chart by", appraiser), side = 3, line = -4, outer = TRUE, font = 2)
+
+            ## Restore previous layout
             par(par_temp)
           })
 
 #' Range Chart
-#' @name plotRange
+#' @name plotRangeChart
 #' @export
-setMethod("plotRange",
+setMethod("plotRangeChart",
           signature = signature(object = "NestedMSA"),
           function(object){
-            print("TEST")
-            return(object)
+            headers <- names(object@data@data)
+
+            part <- headers[1]
+            appraiser <- headers[2]
+            variable <- headers[3]
+
+            ## Mean and range formula
+            f <- as.formula(paste(variable, "~", appraiser, "+", part))
+
+            rangeFunction <- function(x) {
+              max(x) - min(x)
+            }
+
+            xrange <- aggregate(f, data = object@data@data, rangeFunction)
+
+            averageRange <- mean(xrange[[variable]])
+
+            d3 <- ss.cc.getd3(object@n)
+            d2 <- ss.cc.getd2(object@n)
+
+            ## Range limits
+            url <- averageRange*(1 + 3 * (d3/d2))
+            lrl <- max(averageRange * (1 - 3 * (d3/d2)), 0)
+
+            ## Graph limits
+            graphLimits <- c(min(range(xrange[[variable]])[1], lrl),
+                         max(range(xrange[[variable]])[2], url)) +
+              c(-1, 1) * 0.1 * diff(range(xrange[[variable]]))
+
+            ## Ploting
+            distinctAppraisers <- unique(xrange[[appraiser]])
+            minX <- min(xrange[[variable]])
+            maxX <- max(xrange[[variable]])
+
+            ## Save te previous layout to restore it after printing the plot
+            par_temp = par()
+            par(mfrow = c(1, length(distinctAppraisers)), mar=c(5,4,7,2)+0.1, xpd=FALSE)
+
+            for (i in seq_along(distinctAppraisers)) {
+              filterIndexs <- xrange[,1] == distinctAppraisers[[i]]
+
+              data = xrange[filterIndexs,]
+
+              ## To avoid boxplot to be printed instead of xyplot
+              data[[part]] <- as.numeric(levels(data[[part]]))[data[[part]]]
+
+              plot(x = data[[part]], y = data[[variable]], ylim = graphLimits, type = "b", pch = 1, ylab = paste(variable), xlab = paste(part), col = "blue")
+
+              title(distinctAppraisers[[i]], line = 1)
+
+              grid()
+
+              abline(h = averageRange, col = 'grey', lty = 2)    # average Range
+              abline(h = url, col = "red")    # upper Range limit
+              abline(h = lrl, col = "red")    # lower Range limit
+
+              text(y = averageRange, x = 1.35, expression(bold(bar(R))), cex=1, pos=3, col="grey")
+
+              text(y = url, x = 1.35, "URL", cex=1, pos=3, col="red")
+              text(y = lrl, x = 1.35, "LRL", cex=1, pos=1, col="red")
+            }
+
+            mtext(paste("Range Chart by", appraiser), side = 3, line = -4, outer = TRUE, font = 2)
+
+            ## Restore previous layout
+            par(par_temp)
           })
