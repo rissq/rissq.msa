@@ -49,17 +49,17 @@ setMethod("anovaMSA",
             variable <- headers[3]
 
             ## Complete model (with interaction)
-            modelf <- as.formula(paste(variable, "~", appraiser, "/", part))
+            modelf <- as.formula(paste(variable, "~", part))
 
             model <- aov(modelf, data = object@data@data)
             modelm <- summary(model)
 
-            rownames(modelm[[1]])[3] <- "REPEATIBILITY"
+            rownames(modelm[[1]])[2] <- "REPEATIBILITY"
 
             #Total row for Df and SumSq
             modelm[[1]] <- rbind(modelm[[1]], c(colSums(modelm[[1]][, 1:2]), rep(NA, 3)))
 
-            rownames(modelm[[1]])[4] <- "TOTAL"
+            rownames(modelm[[1]])[3] <- "TOTAL"
 
             object@anova <- list(modelm[[1]])
 
@@ -89,13 +89,14 @@ setMethod("rar",
             #Repeatibility
             object@varianceComponents[2, 1] <- object@anova[[1]][3, 3]
             #Total reproducibility
-            object@varianceComponents[3, 1] <- max(c((object@anova[[1]][1, 1] * (object@anova[[1]][1, 3] - object@anova[[1]][2, 3]) / (object@lvlPart * object@n)), 0))
+            object@varianceComponents[3, 2] <- NA
             #Part to part
             object@varianceComponents[4, 1] <- max(c((object@anova[[1]][2, 3] - object@anova[[1]][3, 3]) / object@n, 0))
             #Totat Gage rar
-            object@varianceComponents[1, 1] <- object@varianceComponents[2, 1] + object@varianceComponents[3, 1]
+            object@varianceComponents[1, 1] <- object@varianceComponents[2, 1]
             #Total variation
             object@varianceComponents[5, 1] <- object@varianceComponents[1, 1] + object@varianceComponents[4, 1]
+
             #%Contrib
             object@varianceComponents[, 2] <- round(100 * (object@varianceComponents[, 1]/object@varianceComponents[5, 1]), 2)
             #Standard Deviation
@@ -110,6 +111,8 @@ setMethod("rar",
             #Number of distinct categories
             object@numberCategories <- max(c(1, floor((object@varianceComponents[4, 4]/object@varianceComponents[1, 4])*1.41)))
 
+            object@varianceComponents <- object@varianceComponents[-c(3:5), ]
+
             return(object)
           })
 
@@ -121,8 +124,8 @@ setMethod("plotComponentOfVariationChart",
           function(object){
 
             ## Set rows and cols to take from components of variation table to be printed
-            rows <- c(1,2,3,4)
-            rlabels <- c("G.R&R", "Repeat", "Reprod", "Part2Part")
+            rows <- c(1,2,3)
+            rlabels <- c("G.R&R", "Repeat", "Part2Part")
 
             if ((!is.na(object@characteristic@U) && !is.na(object@characteristic@U)) || !is.na(object@tolerance)) {
               cols <- c(2, 5, 6)
