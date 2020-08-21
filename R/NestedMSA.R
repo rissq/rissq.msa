@@ -164,8 +164,8 @@ setMethod("plotVariableByPartChart",
             f <- as.formula(paste(variable, "~",  part))
 
             plot <- stripchart(f, data = object@data@data, vertical = TRUE,
-                       method = "jitter", main = paste(variable, "by", part),
-                       xlab = part)
+                       method = "overplot", main = paste(variable, "by", part),
+                       xlab = part, pch = 1)
 
             grid()
           })
@@ -185,7 +185,7 @@ setMethod("plotVariableByAppraiserChart",
             f <- as.formula(paste(variable, "~",  appraiser))
 
             plot <- stripchart(f, data = object@data@data, vertical = TRUE,
-                               method = "jitter", main = paste(variable, "by", appraiser))
+                               method = "overplot", main = paste(variable, "by", appraiser), pch = 1)
 
             grid()
           })
@@ -255,8 +255,8 @@ setMethod("plotMeanChart",
 
               text(y = meanbar, x = 1.35, expression(bold(bar(X))), cex=1, pos=3, col="grey")
 
-              text(y = ucl, x = 1.35, "UCL", cex=1, pos=3, col="red")
-              text(y = lcl, x = 1.35, "LCL", cex=1, pos=1, col="red")
+              text(y = ucl, x = 1.55, "UCL", cex=0.8, pos=3, col="red")
+              text(y = lcl, x = 1.55, "LCL", cex=0.8, pos=1, col="red")
             }
 
             mtext(paste("Mean Chart by", appraiser), side = 3, line = -4, outer = TRUE, font = 2)
@@ -329,8 +329,8 @@ setMethod("plotRangeChart",
 
               text(y = averageRange, x = 1.35, expression(bold(bar(R))), cex=1, pos=3, col="grey")
 
-              text(y = url, x = 1.35, "URL", cex=1, pos=3, col="red")
-              text(y = lrl, x = 1.35, "LRL", cex=1, pos=1, col="red")
+              text(y = url, x = 1.55, "URL", cex=0.8, pos=3, col="red")
+              text(y = lrl, x = 1.55, "LRL", cex=0.8, pos=1, col="red")
             }
 
             mtext(paste("Range Chart by", appraiser), side = 3, line = -4, outer = TRUE, font = 2)

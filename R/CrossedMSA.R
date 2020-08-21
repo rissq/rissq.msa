@@ -214,14 +214,14 @@ setMethod("plotVariableByPartChart",
             headers <- names(object@data@data)
 
             part <- headers[1]
+            appraiser <- headers[2]
             variable <- headers[3]
 
             ## Formula for the chart
             f <- as.formula(paste(variable, "~",  part))
 
-            plot <- stripchart(f, data = object@data@data, vertical = TRUE,
-                               method = "jitter", main = paste(variable, "by", part),
-                               xlab = part)
+            stripchart(f, data = object@data@data, vertical = TRUE,
+                               method = "overplot", main = paste(variable, "by", part), pch = 1)
 
             grid()
           })
@@ -240,8 +240,8 @@ setMethod("plotVariableByAppraiserChart",
             ## Formula for the chart
             f <- as.formula(paste(variable, "~",  appraiser))
 
-            plot <- stripchart(f, data = object@data@data, vertical = TRUE,
-                               method = "jitter", main = paste(variable, "by", appraiser))
+            stripchart(f, data = object@data@data, vertical = TRUE,
+                               method = "overplot", main = paste(variable, "by", appraiser), pch = 1)
 
             grid()
           })
@@ -278,7 +278,7 @@ setMethod("plotInteractionChart",
 
               if (i == 1) {
                 plot(x = dataX, y = data[[variable]], ylim = c(minY, maxY), xaxt = "n", type = "b", pch = i, lty = i, ylab = paste(variable), xlab = paste(part))
-                axis(1, seq_along(data[[part]]), data$part)
+                axis(1, seq_along(data[[part]]), data[[part]])
 
                 title(paste0(part, ":", appraiser, " Interaction"), line = -2, outer = TRUE, font = 2)
               } else {

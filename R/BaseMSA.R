@@ -48,7 +48,6 @@ setMethod("anovaMSA",
             appraiser <- headers[2]
             variable <- headers[3]
 
-            ## Complete model (with interaction)
             modelf <- as.formula(paste(variable, "~", part))
 
             model <- aov(modelf, data = object@data@data)
@@ -87,11 +86,11 @@ setMethod("rar",
 
             #Variance Components Table
             #Repeatibility
-            object@varianceComponents[2, 1] <- object@anova[[1]][3, 3]
+            object@varianceComponents[2, 1] <- object@anova[[1]][2, 3]
             #Total reproducibility
             object@varianceComponents[3, 2] <- NA
             #Part to part
-            object@varianceComponents[4, 1] <- max(c((object@anova[[1]][2, 3] - object@anova[[1]][3, 3]) / object@n, 0))
+            object@varianceComponents[4, 1] <- max(c((object@anova[[1]][1, 3] - object@anova[[1]][2, 3]) / object@n, 0))
             #Totat Gage rar
             object@varianceComponents[1, 1] <- object@varianceComponents[2, 1]
             #Total variation
@@ -111,7 +110,7 @@ setMethod("rar",
             #Number of distinct categories
             object@numberCategories <- max(c(1, floor((object@varianceComponents[4, 4]/object@varianceComponents[1, 4])*1.41)))
 
-            object@varianceComponents <- object@varianceComponents[-c(3:5), ]
+            object@varianceComponents <- object@varianceComponents[-c(3,5), ]
 
             return(object)
           })
@@ -124,7 +123,7 @@ setMethod("plotComponentOfVariationChart",
           function(object){
 
             ## Set rows and cols to take from components of variation table to be printed
-            rows <- c(1,2,3)
+            rows <- c(1,2, 3)
             rlabels <- c("G.R&R", "Repeat", "Part2Part")
 
             if ((!is.na(object@characteristic@U) && !is.na(object@characteristic@U)) || !is.na(object@tolerance)) {
@@ -157,14 +156,14 @@ setMethod("plotVariableByPartChart",
             headers <- names(object@data@data)
 
             part <- headers[1]
+            appraiser <- headers[2]
             variable <- headers[3]
 
             ## Formula for the chart
             f <- as.formula(paste(variable, "~",  part))
 
-            plot <- stripchart(f, data = object@data@data, vertical = TRUE,
-                               method = "jitter", main = paste(variable, "by", part),
-                               xlab = part)
+            stripchart(f, data = object@data@data, vertical = TRUE,
+                               method = "overplot", main = paste(variable, "by", part), pch = 1)
 
             grid()
           })
@@ -183,8 +182,10 @@ setMethod("plotVariableByAppraiserChart",
             ## Formula for the chart
             f <- as.formula(paste(variable, "~",  appraiser))
 
-            plot <- stripchart(f, data = object@data@data, vertical = TRUE,
-                               method = "jitter", main = paste(variable, "by", appraiser))
+            stripchart(f, data = object@data@data, vertical = TRUE,
+                               method = "overplot", main = paste(variable, "by", appraiser), pch = 1)
+
+            axis(1, seq_along(unique(object@data@data[[appraiser]])), unique(object@data@data[[appraiser]]))
 
             grid()
           })
@@ -222,13 +223,8 @@ setMethod("plotMeanChart",
                              max(range(xmean[[variable]])[2], ucl)) +
               c(-1, 1) * 0.1* diff(range(xmean[[variable]]))
 
-            ## Formula for chart
-            #chartf <- as.formula(paste(variable, "~", part))
-
             ## Plotting
             distinctAppraisers <- unique(xmean[[appraiser]])
-            minX <- min(xmean[[variable]])
-            maxX <- max(xmean[[variable]])
 
             ## Save te previous layout to restore it after printing the plot
             par_temp = par()
@@ -240,9 +236,10 @@ setMethod("plotMeanChart",
               data = xmean[filterIndexs,]
 
               ## To avoid boxplot to be printed instead of xyplot
-              data[[part]] <- as.numeric(levels(data[[part]]))[data[[part]]]
+              dataX <- as.numeric(levels(data[[part]]))[data[[part]]]
 
-              plot(x = data[[part]], y = data[[variable]], ylim = graphLimits, type = "b", pch = 1, ylab = paste(variable), xlab = paste(part), col = "blue")
+              plot(x = dataX, y = data[[variable]], ylim = graphLimits, xaxt = "n", type = "b", pch = 1, ylab = paste(variable), xlab = paste(part), col = "blue")
+              axis(1, seq_along(data[[part]]), data$part)
 
               title(distinctAppraisers[[i]], line = 1)
 
@@ -254,8 +251,8 @@ setMethod("plotMeanChart",
 
               text(y = meanbar, x = 1.35, expression(bold(bar(X))), cex=1, pos=3, col="grey")
 
-              text(y = ucl, x = 1.35, "UCL", cex=1, pos=3, col="red")
-              text(y = lcl, x = 1.35, "LCL", cex=1, pos=1, col="red")
+              text(y = ucl, x = 1.35, "UCL", cex=0.8, pos=1, col="red")
+              text(y = lcl, x = 1.35, "LCL", cex=0.8, pos=3, col="red")
             }
 
             mtext(paste("Mean Chart by", appraiser), side = 3, line = -4, outer = TRUE, font = 2)
@@ -314,9 +311,10 @@ setMethod("plotRangeChart",
               data = xrange[filterIndexs,]
 
               ## To avoid boxplot to be printed instead of xyplot
-              data[[part]] <- as.numeric(levels(data[[part]]))[data[[part]]]
+              dataX <- as.numeric(levels(data[[part]]))[data[[part]]]
 
-              plot(x = data[[part]], y = data[[variable]], ylim = graphLimits, type = "b", pch = 1, ylab = paste(variable), xlab = paste(part), col = "blue")
+              plot(x = dataX, y = data[[variable]], ylim = graphLimits, xaxt = "n", type = "b", pch = 1, ylab = paste(variable), xlab = paste(part), col = "blue")
+              axis(1, seq_along(dataX), data$part)
 
               title(distinctAppraisers[[i]], line = 1)
 
@@ -328,8 +326,8 @@ setMethod("plotRangeChart",
 
               text(y = averageRange, x = 1.35, expression(bold(bar(R))), cex=1, pos=3, col="grey")
 
-              text(y = url, x = 1.35, "URL", cex=1, pos=3, col="red")
-              text(y = lrl, x = 1.35, "LRL", cex=1, pos=1, col="red")
+              text(y = url, x = 1.35, "URL", cex=0.8, pos=1, col="red")
+              text(y = lrl, x = 1.35, "LRL", cex=0.8, pos=3, col="red")
             }
 
             mtext(paste("Range Chart by", appraiser), side = 3, line = -4, outer = TRUE, font = 2)
