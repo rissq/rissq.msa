@@ -85,7 +85,7 @@ setMethod("anovaMSA",
             if (p > object@alphaLim) {
               reducedModelf <- as.formula(paste(variable, "~", part, "+", appraiser))
 
-              reducedModel <- aouv(reducedModelf, data = object@data@data)
+              reducedModel <- aov(reducedModelf, data = object@data@data)
               reducedModelm <- summary(reducedModel)
 
               rownames(reducedModelm[[1]])[3] <- "REPEATIBILITY"
@@ -93,7 +93,7 @@ setMethod("anovaMSA",
               ## Total row for Df and SumSq
               reducedModelm[[1]] <- rbind(reducedModelm[[1]], c(colSums(reducedModelm[[1]][, 1:2]), rep(NA, 3)))
 
-              reducedModelm(modelm[[1]])[4] <- "TOTAL"
+              rownames(reducedModelm[[1]])[4] <- "TOTAL"
 
               object@anovaReduced <- list(reducedModelm[[1]])
             }
@@ -254,17 +254,40 @@ setMethod("plotInteractionChart",
           function(object){
             headers <- names(object@data@data)
 
+            part <- headers[1]
             appraiser <- headers[2]
             variable <- headers[3]
 
             ## Formula for the chart
             f <- as.formula(paste(variable, "~",  appraiser, "+", part))
 
-            data <- aggregate(f, data = object@data@data, mean)
+            agregatedData <- aggregate(f, data = object@data@data, mean)
 
-            print(data)
+            minY <- min(agregatedData[[variable]]) - 0.1 * diff(range(agregatedData[[variable]]))
+            maxY <- max(agregatedData[[variable]]) + 0.1 * diff(range(agregatedData[[variable]]))
 
-            plot <- plot(f, data = data, pch = 1, type = c("p", "a"), main = paste(part, ":", apprariser, " Interaction"))
+            distinctAppraisers <- unique(agregatedData[[appraiser]])
+
+            for (i in seq_along(distinctAppraisers)) {
+              filterIndexs <- agregatedData[,1] == distinctAppraisers[[i]]
+
+              data = agregatedData[filterIndexs,]
+
+              ## To avoid boxplot to be printed instead of xyplot
+              dataX <- as.numeric(levels(data[[part]]))[data[[part]]]
+
+              if (i == 1) {
+                plot(x = dataX, y = data[[variable]], ylim = c(minY, maxY), xaxt = "n", type = "b", pch = i, lty = i, ylab = paste(variable), xlab = paste(part))
+                axis(1, seq_along(data[[part]]), data$part)
+
+                title(paste0(part, ":", appraiser, " Interaction"), line = -2, outer = TRUE, font = 2)
+              } else {
+                points(x = dataX, y = data[[variable]], pch = i)
+                lines(x = dataX, y = data[[variable]], lty=i)
+              }
+            }
+
+            legend(x = 1, y = maxY, legend=distinctAppraisers, pch=seq_along(distinctAppraisers),lty=seq_along(distinctAppraisers), ncol=1)
 
             grid()
           })
@@ -307,8 +330,6 @@ setMethod("plotMeanChart",
 
             ## Plotting
             distinctAppraisers <- unique(xmean[[appraiser]])
-            minX <- min(xmean[[variable]])
-            maxX <- max(xmean[[variable]])
 
             ## Save te previous layout to restore it after printing the plot
             par_temp = par()
