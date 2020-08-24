@@ -205,6 +205,66 @@ setMethod("plotComponentOfVariationChart",
             return(plot)
           })
 
+#' Components of Variation Chart with ggplot2
+#' @name ggplotComponentOfVariationChart
+#' @export
+setMethod("ggplotComponentOfVariationChart",
+          signature = signature(object = "CrossedMSA"),
+          function(object){
+
+            ## Set rows and cols to take from components of variation table to be printed
+            p <- object@anova[[1]][3, 5]
+
+            if (p > object@alphaLim){
+              rows <- c(1,2,3,5)
+            } else {
+              rows <- c(1,2,3,6)
+            }
+
+            rlabels <- c("G.R&R", "Repeat", "Reprod", "Part2Part")
+
+            if ((!is.na(object@characteristic@U) && !is.na(object@characteristic@U)) || !is.na(object@tolerance)) {
+              cols <- c(2, 5, 6)
+              clabels <- c("Contribution", "Stud.Var", "Tolerance")
+            } else{
+              cols <- c(2, 5)
+              clabels <- c("Contribution", "Study.Var")
+            }
+
+            chartData <- object@varianceComponents[rows,cols]
+            rownames(chartData) <- rlabels
+            colnames(chartData) <- clabels
+
+            chartData <- cbind(rownames(chartData), data.frame(chartData, row.names=NULL))
+            colnames(chartData) <- c("Variance.Component",clabels)
+
+            contributionData <- data.frame(chartData[,c(1,2)], "Contribution")
+            studyVarData <- data.frame(chartData[,c(1,3)], "StudyVar")
+
+            colnames(contributionData) <- c("Component", "Value", "Rate")
+            colnames(studyVarData) <- c("Component", "Value", "Rate")
+
+            if (length(clabels) == 3) {
+              toleranceVarData <- data.frame(chartData[,c(1,3)], "Tolerance")
+              colnames(toleranceVarData) <- c("Component", "Value", "Rate")
+
+              data <- rbind.data.frame(contributionData, studyVarData, toleranceVarData)
+
+            } else {
+              data <- rbind.data.frame(contributionData, studyVarData)
+            }
+
+            gg <- ggplot(data = data, aes_string("Component", "Value", fill = "Rate")) +
+              geom_col(position = "dodge") +
+              labs(title="Components of Variation by rate")
+
+            gg <- gg +
+              geom_hline(yintercept = 10, lty = 2, col = "grey") +
+              geom_hline(yintercept = 30, lty = 2, col = "grey")
+
+            print(gg)
+          })
+
 #' Variable by Part
 #' @name plotVariableByPartChart
 #' @export
@@ -226,6 +286,36 @@ setMethod("plotVariableByPartChart",
             grid()
           })
 
+#' Variable by Part
+#' @name ggplotVariableByPartChart
+#' @export
+setMethod("ggplotVariableByPartChart",
+          signature = signature(object = "CrossedMSA"),
+          function(object){
+            headers <- names(object@data@data)
+
+            part <- headers[1]
+            appraiser <- headers[2]
+            variable <- headers[3]
+
+            ## Formula for the chart
+            f <- as.formula(paste(variable, "~",  part))
+
+            meanByPart <- aggregate(f, data = object@data@data, mean)
+
+            show(meanByPart)
+
+            show(object@data@data)
+
+            gg <- ggplot(data = object@data@data, aes_string(x=part, y=variable, group = 1, color = part)) +
+              geom_point() +
+              labs(title=paste(variable, "by", part), x=part, y=variable)
+
+            gg <- gg + geom_line(data = meanByPart, aes_string(x=part, y=variable, group = 1), colour = "grey")
+
+            print(gg)
+          })
+
 #' Variable by Appraiser
 #' @name plotVariableByAppraiserChart
 #' @export
@@ -244,6 +334,36 @@ setMethod("plotVariableByAppraiserChart",
                                method = "overplot", main = paste(variable, "by", appraiser), pch = 1)
 
             grid()
+          })
+
+#' Variable by Appraiser with ggplot2
+#' @name ggplotVariableByAppraiserChart
+#' @export
+setMethod("ggplotVariableByAppraiserChart",
+          signature = signature(object = "CrossedMSA"),
+          function(object){
+            headers <- names(object@data@data)
+
+            part <- headers[1]
+            appraiser <- headers[2]
+            variable <- headers[3]
+
+            ## Formula for the chart
+            f <- as.formula(paste(variable, "~",  appraiser))
+
+            meanByPart <- aggregate(f, data = object@data@data, mean)
+
+            show(meanByPart)
+
+            show(object@data@data)
+
+            gg <- ggplot(data = object@data@data, aes_string(x=appraiser, y=variable, group = 1, color = appraiser)) +
+              geom_point() +
+              labs(title=paste(variable, "by", appraiser), x=appraiser, y=variable)
+
+            gg <- gg + geom_line(data = meanByPart, aes_string(x=appraiser, y=variable, group = 1), colour = "grey")
+
+            print(gg)
           })
 
 #' Interaction
@@ -290,6 +410,36 @@ setMethod("plotInteractionChart",
             legend(x = 1, y = maxY, legend=distinctAppraisers, pch=seq_along(distinctAppraisers),lty=seq_along(distinctAppraisers), ncol=1)
 
             grid()
+          })
+
+#' Interaction
+#' @name ggplotInteractionChart
+#' @export
+setMethod("ggplotInteractionChart",
+          signature = signature(object = "CrossedMSA"),
+          function(object){
+            headers <- names(object@data@data)
+
+            part <- headers[1]
+            appraiser <- headers[2]
+            variable <- headers[3]
+
+            ## Formula for the chart
+            f <- as.formula(paste(variable, "~",  appraiser, "+", part))
+
+            agregatedData <- aggregate(f, data = object@data@data, mean)
+
+            minY <- min(agregatedData[[variable]]) - 0.1 * diff(range(agregatedData[[variable]]))
+            maxY <- max(agregatedData[[variable]]) + 0.1 * diff(range(agregatedData[[variable]]))
+
+            gg <- ggplot(data = agregatedData, aes_string(x=part, y=variable, group = appraiser, color = appraiser)) +
+              geom_point() +
+              geom_line() +
+              labs(title=paste("Interaction Chart by", appraiser), x=part, y=variable)
+
+            gg <- gg + ylim(c(minY, maxY))
+
+            print(gg)
           })
 
 #' Mean Chart
@@ -365,6 +515,69 @@ setMethod("plotMeanChart",
             par(par_temp)
           })
 
+#' Mean Chart with ggplot2
+#' @name plotGridMeanChart
+#' @export
+setMethod("ggplotMeanChart",
+          signature = signature(object = "CrossedMSA"),
+          function(object){
+            headers <- names(object@data@data)
+
+            part <- headers[1]
+            appraiser <- headers[2]
+            variable <- headers[3]
+
+            ## Mean and range formula
+            f <- as.formula(paste(variable, "~", appraiser, "+", part))
+
+            rangeFunction <- function(x) {
+              max(x) - min(x)
+            }
+
+            xmean <- aggregate(f, data = object@data@data, mean)
+            xrange <- aggregate(f, data = object@data@data, rangeFunction)
+
+            averageRange <- mean(xrange[[variable]])
+
+            meanbar <- mean(object@data@data[[variable]], na.rm = TRUE)
+
+            ucl <- meanbar + (3/(ss.cc.getd2(object@n)*sqrt(object@n)))*averageRange
+            lcl <- meanbar - (3/(ss.cc.getd2(object@n)*sqrt(object@n)))*averageRange
+
+            graphLimits <- c(min(range(xmean[[variable]])[1], lcl),
+                             max(range(xmean[[variable]])[2], ucl)) +
+              c(-1, 1) * 0.1* diff(range(xmean[[variable]]))
+
+
+            ## Plotting
+            distinctAppraisers <- unique(xmean[[appraiser]])
+
+            print(xmean)
+
+            gg <- ggplot(data = xmean, aes_string(x=part, y=variable, group = 1, color=appraiser)) +
+              geom_point() +
+              geom_line() +
+              facet_wrap(as.formula(paste("~", appraiser)), ncol=length(distinctAppraisers), drop=TRUE) +
+              labs(title=paste("Mean Chart by", appraiser), x=part, y=variable)
+
+            gg <- gg +
+              geom_hline(yintercept = meanbar, col = 'grey', lty = 2) +
+              geom_text(aes(2, meanbar, label = "MEAN"), colour = "grey", vjust = "top", nudge_y = -0.1)
+
+            gg <- gg +
+              geom_hline(yintercept = ucl, col = 'red') +
+              geom_text(aes(2, ucl, label = "UCL"), colour = "red", vjust = "bottom", nudge_y = 0.1)
+
+            gg <- gg +
+              geom_hline(yintercept = lcl, col = 'red') +
+              geom_text(aes(2, lcl, label = "LCL"), colour = "red", vjust = "bottom", nudge_y = 0.1)
+
+            gg <- gg + theme(legend.position = "none") + ylim(graphLimits)
+
+            print(gg)
+
+          })
+
 #' Range Chart
 #' @name plotRangeChart
 #' @export
@@ -437,4 +650,66 @@ setMethod("plotRangeChart",
 
             ## Restore previous layout
             par(par_temp)
+          })
+
+#' Range Chart with ggplot2
+#' @name ggplotRangeChart
+#' @export
+setMethod("ggplotRangeChart",
+          signature = signature(object = "CrossedMSA"),
+          function(object){
+            headers <- names(object@data@data)
+
+            part <- headers[1]
+            appraiser <- headers[2]
+            variable <- headers[3]
+
+            ## Mean and range formula
+            f <- as.formula(paste(variable, "~", appraiser, "+", part))
+
+            rangeFunction <- function(x) {
+              max(x) - min(x)
+            }
+
+            xrange <- aggregate(f, data = object@data@data, rangeFunction)
+
+            averageRange <- mean(xrange[[variable]])
+
+            d3 <- ss.cc.getd3(object@n)
+            d2 <- ss.cc.getd2(object@n)
+
+            ## Range limits
+            url <- averageRange*(1 + 3 * (d3/d2))
+            lrl <- max(averageRange * (1 - 3 * (d3/d2)), 0)
+
+            ## Graph limits
+            graphLimits <- c(min(range(xrange[[variable]])[1], lrl),
+                             max(range(xrange[[variable]])[2], url)) +
+              c(-1, 1) * 0.1 * diff(range(xrange[[variable]]))
+
+            ## Ploting
+            distinctAppraisers <- unique(xrange[[appraiser]])
+
+            gg <- ggplot(data = xrange, aes_string(x=part, y=variable, group = 1, color=appraiser)) +
+              geom_point() +
+              geom_line() +
+              facet_wrap(as.formula(paste("~", appraiser)), ncol=length(distinctAppraisers), drop=TRUE) +
+              labs(title=paste("Range Chart by", appraiser), x=part, y=variable)
+
+            gg <- gg +
+              geom_hline(yintercept = averageRange, col = 'grey', lty = 2) +
+              geom_text(aes(2, averageRange, label = "MEAN"), colour = "grey", vjust = "top", nudge_y = -0.1)
+
+            gg <- gg +
+              geom_hline(yintercept = url, col = 'red') +
+              geom_text(aes(2, url, label = "URL"), colour = "red", vjust = "bottom", nudge_y = 0.1)
+
+            gg <- gg +
+              geom_hline(yintercept = lrl, col = 'red') +
+              geom_text(aes(2, lrl, label = "LRL"), colour = "red", vjust = "bottom", nudge_y = 0.1)
+
+            gg <- gg + theme(legend.position = "none") + ylim(graphLimits)
+
+            print(gg)
+
           })
