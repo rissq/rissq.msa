@@ -99,7 +99,7 @@ setGeneric (
 #' @export
 setGeneric (
   name = "ggplotMeanChart",
-  def = function(object){ standardGeneric("ggplotMeanChart") }
+  def = function(object, ...){ standardGeneric("ggplotMeanChart") }
 )
 
 #' Generic for plotting Range Chart
@@ -115,5 +115,5 @@ setGeneric (
 #' @export
 setGeneric (
   name = "ggplotRangeChart",
-  def = function(object){ standardGeneric("ggplotRangeChart") }
+  def = function(object, ...){ standardGeneric("ggplotRangeChart") }
 )

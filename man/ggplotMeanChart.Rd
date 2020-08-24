@@ -4,7 +4,7 @@
 \alias{ggplotMeanChart}
 \title{Generic for plotting Mean Chart with grid ggplot2}
 \usage{
-ggplotMeanChart(object)
+ggplotMeanChart(object, ...)
 }
 \description{
 Generic for plotting Mean Chart with grid ggplot2

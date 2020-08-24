@@ -166,6 +166,35 @@ setMethod("rar",
             return(object)
           })
 
+#' Plot rar resume
+#' @name plotRar
+#' @export
+setMethod("plotRar",
+          signature = signature(object = "CrossedMSA"),
+          function(object){
+
+            lay <- rbind(c(1,2),
+                         c(3,4),
+                         c(5,6))
+
+            g <- grid.arrange(
+              ggplotComponentOfVariationChart(object),
+              ggplotVariableByPartChart(object),
+              ggplotRangeChart(object, gridLayout = TRUE),
+              ggplotVariableByAppraiserChart(object),
+              ggplotMeanChart(object, gridLayout = TRUE),
+              ggplotInteractionChart(object),
+              layout_matrix = lay,
+              top = object@name,
+              bottom = object@description
+            )
+
+            g2 <- cowplot::ggdraw(g) +
+              theme(plot.background = element_rect(fill="white", color = NA))
+
+            plot(g2)
+          })
+
 #' Components of Variation Chart
 #' @name plotComponentOfVariationChart
 #' @export
@@ -520,7 +549,7 @@ setMethod("plotMeanChart",
 #' @export
 setMethod("ggplotMeanChart",
           signature = signature(object = "CrossedMSA"),
-          function(object){
+          function(object, gridLayout = FALSE, ...){
             headers <- names(object@data@data)
 
             part <- headers[1]
@@ -560,17 +589,23 @@ setMethod("ggplotMeanChart",
               facet_wrap(as.formula(paste("~", appraiser)), ncol=length(distinctAppraisers), drop=TRUE) +
               labs(title=paste("Mean Chart by", appraiser), x=part, y=variable)
 
+            if(gridLayout == TRUE) {
+              labelsSize = 2
+            } else {
+              labelsSize = 5
+            }
+
             gg <- gg +
               geom_hline(yintercept = meanbar, col = 'grey', lty = 2) +
-              geom_text(aes(2, meanbar, label = "MEAN"), colour = "grey", vjust = "top", nudge_y = -0.1)
+              geom_text(aes(2, meanbar, label = "MEAN"), colour = "grey", vjust = "top", nudge_y = -0.1, size = labelsSize, alpha = 0.8)
 
             gg <- gg +
               geom_hline(yintercept = ucl, col = 'red') +
-              geom_text(aes(2, ucl, label = "UCL"), colour = "red", vjust = "bottom", nudge_y = 0.1)
+              geom_text(aes(2, ucl, label = "UCL"), colour = "red", vjust = "bottom", nudge_y = 0.1, size = labelsSize, alpha = 0.8)
 
             gg <- gg +
               geom_hline(yintercept = lcl, col = 'red') +
-              geom_text(aes(2, lcl, label = "LCL"), colour = "red", vjust = "bottom", nudge_y = 0.1)
+              geom_text(aes(2, lcl, label = "LCL"), colour = "red", vjust = "bottom", nudge_y = 0.1, size = labelsSize, alpha = 0.8)
 
             gg <- gg + theme(legend.position = "none") + ylim(graphLimits)
 
@@ -657,7 +692,7 @@ setMethod("plotRangeChart",
 #' @export
 setMethod("ggplotRangeChart",
           signature = signature(object = "CrossedMSA"),
-          function(object){
+          function(object, gridLayout = FALSE, ...){
             headers <- names(object@data@data)
 
             part <- headers[1]
@@ -696,17 +731,23 @@ setMethod("ggplotRangeChart",
               facet_wrap(as.formula(paste("~", appraiser)), ncol=length(distinctAppraisers), drop=TRUE) +
               labs(title=paste("Range Chart by", appraiser), x=part, y=variable)
 
+            if(gridLayout == TRUE) {
+              labelsSize = 2
+            } else {
+              labelsSize = 5
+            }
+
             gg <- gg +
               geom_hline(yintercept = averageRange, col = 'grey', lty = 2) +
-              geom_text(aes(2, averageRange, label = "MEAN"), colour = "grey", vjust = "top", nudge_y = -0.1)
+              geom_text(aes(2, averageRange, label = "MEAN"), colour = "grey", vjust = "top", nudge_y = -0.1, size = labelsSize, alpha = 0.8)
 
             gg <- gg +
               geom_hline(yintercept = url, col = 'red') +
-              geom_text(aes(2, url, label = "URL"), colour = "red", vjust = "bottom", nudge_y = 0.1)
+              geom_text(aes(2, url, label = "URL"), colour = "red", vjust = "bottom", nudge_y = 0.1, size = labelsSize, alpha = 0.8)
 
             gg <- gg +
               geom_hline(yintercept = lrl, col = 'red') +
-              geom_text(aes(2, lrl, label = "LRL"), colour = "red", vjust = "bottom", nudge_y = 0.1)
+              geom_text(aes(2, lrl, label = "LRL"), colour = "red", vjust = "bottom", nudge_y = 0.1, size = labelsSize, alpha = 0.8)
 
             gg <- gg + theme(legend.position = "none") + ylim(graphLimits)
 

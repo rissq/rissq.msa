@@ -117,80 +117,6 @@ setMethod("rar",
             return(object)
           })
 
-#' Plot rar resume
-#' @name plotRar
-#' @export
-setMethod("plotRar",
-          signature = signature(object = "NestedMSA"),
-          function(object){
-
-            main = object@name
-            sub = object@description
-
-            ## Plot
-            grid::grid.newpage()
-
-            gcanvas <- grid::viewport(name = "canvas", layout = grid::grid.layout(3, 1, heights = unit(c(3, 1, 2), c("lines", "null", "lines"))))
-            grid::pushViewport(gcanvas)
-
-            ## Title
-            gtitle <- grid::viewport(layout.pos.col = 1, layout.pos.row = 1, name = "title")
-            grid::pushViewport(gtitle)
-
-            grid::grid.text (main, gp = grid::gpar(fontsize = 20))
-            grid::popViewport()
-
-            ## Subtitle
-            gsubtitle <- grid::viewport(layout.pos.col = 1, layout.pos.row = 3, name="subtitle")
-            grid::pushViewport(gsubtitle)
-
-            grid::grid.text(sub, gp = grid::gpar())
-            grid::popViewport()
-
-            ## Container
-            gcontainer <- grid::viewport(layout.pos.col = 1, layout.pos.row = 2, name = "container")
-            grid::pushViewport(gcontainer)
-
-            ## Plots
-            vp.plots <- grid::viewport(name = "plots", layout = grid::grid.layout(3, 2))
-            grid::pushViewport(vp.plots)
-
-            ## Components of variation chart
-            componentOfVariationChart <- grid::viewport(name = "componentOfVariationChart", layout.pos.row = 1, layout.pos.col = 1)
-            grid::pushViewport(componentOfVariationChart)
-
-            plot <- ggplotComponentOfVariationChart(object)
-
-            print(plot, newpage = FALSE)
-            grid::popViewport()
-
-            ## Variable by part chart
-            variableByPartChart <- grid::viewport(name = "variableByPartChart", layout.pos.row = 1, layout.pos.col = 2)
-            grid::pushViewport(variableByPartChart)
-
-            plot <- ggplotVariableByPartChart(object)
-
-            print(plot, newpage = FALSE)
-            grid::popViewport()
-
-            ## Range chart
-            rangeChart <- grid::viewport(name = "rangeChart", layout.pos.row = 2, layout.pos.col = 2)
-            grid::pushViewport(rangeChart)
-
-            plot <- ggplotRangeChart(object)
-
-            print(plot, newpage = FALSE)
-            grid::popViewport()
-
-            #
-            # plotVariableByAppraiserChart(object)
-            #
-            # plotMeanChart(object)
-            #
-            # mtext("RaR Study", side = 3, line = -4, outer = TRUE, font = 2)
-
-          })
-
 #' Components of Variation Chart
 #' @name plotComponentOfVariationChart
 #' @export
@@ -260,7 +186,6 @@ setMethod("ggplotComponentOfVariationChart",
               colnames(toleranceVarData) <- c("Component", "Value", "Rate")
 
               data <- rbind.data.frame(contributionData, studyVarData, toleranceVarData)
-
             } else {
               data <- rbind.data.frame(contributionData, studyVarData)
             }
@@ -314,15 +239,13 @@ setMethod("ggplotVariableByPartChart",
 
             meanByPart <- aggregate(f, data = object@data@data, mean)
 
-            show(meanByPart)
-
-            show(object@data@data)
-
             gg <- ggplot(data = object@data@data, aes_string(x=part, y=variable, group = 1, color = part)) +
               geom_point() +
               labs(title=paste(variable, "by", part), x=part, y=variable)
 
             gg <- gg + geom_line(data = meanByPart, aes_string(x=part, y=variable, group = 1), colour = "grey")
+
+            gg <- gg + theme(legend.position = "none")
 
             print(gg)
           })
@@ -364,15 +287,13 @@ setMethod("ggplotVariableByAppraiserChart",
 
             meanByPart <- aggregate(f, data = object@data@data, mean)
 
-            show(meanByPart)
-
-            show(object@data@data)
-
             gg <- ggplot(data = object@data@data, aes_string(x=appraiser, y=variable, group = 1, color = appraiser)) +
               geom_point() +
               labs(title=paste(variable, "by", appraiser), x=appraiser, y=variable)
 
             gg <- gg + geom_line(data = meanByPart, aes_string(x=appraiser, y=variable, group = 1), colour = "grey")
+
+            gg <- gg + theme(legend.position = "none")
 
             print(gg)
           })
@@ -410,13 +331,8 @@ setMethod("plotMeanChart",
                          max(range(xmean[[variable]])[2], ucl)) +
               c(-1, 1) * 0.1* diff(range(xmean[[variable]]))
 
-            ## Formula for chart
-            #chartf <- as.formula(paste(variable, "~", part))
-
             ## Plotting
             distinctAppraisers <- unique(xmean[[appraiser]])
-            minX <- min(xmean[[variable]])
-            maxX <- max(xmean[[variable]])
 
             ## Save te previous layout to restore it after printing the plot
             par_temp = par()
@@ -457,7 +373,7 @@ setMethod("plotMeanChart",
 #' @export
 setMethod("ggplotMeanChart",
           signature = signature(object = "NestedMSA"),
-          function(object){
+          function(object, gridLayout = FALSE, ...){
             headers <- names(object@data@data)
 
             part <- headers[1]
@@ -485,11 +401,8 @@ setMethod("ggplotMeanChart",
                              max(range(xmean[[variable]])[2], ucl)) +
               c(-1, 1) * 0.1* diff(range(xmean[[variable]]))
 
-
             ## Plotting
             distinctAppraisers <- unique(xmean[[appraiser]])
-
-            print(xmean)
 
             gg <- ggplot(data = xmean, aes_string(x=part, y=variable, group = 1, color=appraiser)) +
               geom_point() +
@@ -497,22 +410,27 @@ setMethod("ggplotMeanChart",
               facet_wrap(as.formula(paste("~", appraiser)), ncol=length(distinctAppraisers), drop=TRUE) +
               labs(title=paste("Mean Chart by", appraiser), x=part, y=variable)
 
+            if(gridLayout == TRUE) {
+              labelsSize = 2
+            } else {
+              labelsSize = 5
+            }
+
             gg <- gg +
               geom_hline(yintercept = meanbar, col = 'grey', lty = 2) +
-              geom_text(aes(2, meanbar, label = "MEAN"), colour = "grey", vjust = "top", nudge_y = -0.1)
+              geom_text(aes(2, meanbar, label = "MEAN"), colour = "grey", vjust = "top", nudge_y = -0.1, size = labelsSize, alpha = 0.8)
 
             gg <- gg +
               geom_hline(yintercept = ucl, col = 'red') +
-              geom_text(aes(2, ucl, label = "UCL"), colour = "red", vjust = "bottom", nudge_y = 0.1)
+              geom_text(aes(2, ucl, label = "UCL"), colour = "red", vjust = "bottom", nudge_y = 0.1, size = labelsSize, alpha = 0.8)
 
             gg <- gg +
               geom_hline(yintercept = lcl, col = 'red') +
-                geom_text(aes(2, lcl, label = "LCL"), colour = "red", vjust = "bottom", nudge_y = 0.1)
+                geom_text(aes(2, lcl, label = "LCL"), colour = "red", vjust = "bottom", nudge_y = 0.1, size = labelsSize, alpha = 0.8)
 
             gg <- gg + theme(legend.position = "none") + ylim(graphLimits)
 
             print(gg)
-
           })
 
 #' Range Chart
@@ -592,7 +510,7 @@ setMethod("plotRangeChart",
 #' @export
 setMethod("ggplotRangeChart",
           signature = signature(object = "NestedMSA"),
-          function(object){
+          function(object, gridLayout = FALSE, ...){
             headers <- names(object@data@data)
 
             part <- headers[1]
@@ -631,20 +549,26 @@ setMethod("ggplotRangeChart",
               facet_wrap(as.formula(paste("~", appraiser)), ncol=length(distinctAppraisers), drop=TRUE) +
               labs(title=paste("Range Chart by", appraiser), x=part, y=variable)
 
-            gg <- gg +
-              geom_hline(yintercept = averageRange, col = 'grey', lty = 2) +
-              geom_text(aes(2, averageRange, label = "MEAN"), colour = "grey", vjust = "top", nudge_y = -0.1)
-
-            gg <- gg +
-              geom_hline(yintercept = url, col = 'red') +
-              geom_text(aes(2, url, label = "URL"), colour = "red", vjust = "bottom", nudge_y = 0.1)
+            if(gridLayout == TRUE) {
+              labelsSize = 2
+            } else {
+              labelsSize = 5
+            }
 
             gg <- gg +
               geom_hline(yintercept = lrl, col = 'red') +
-              geom_text(aes(2, lrl, label = "LRL"), colour = "red", vjust = "bottom", nudge_y = 0.1)
+              geom_text(aes(2, lrl, label = "LRL"), colour = "red", vjust = "bottom", nudge_y = 0.1, check_overlap = TRUE, size = labelsSize, alpha = 0.8)
+
+            gg <- gg +
+              geom_hline(yintercept = averageRange, col = 'grey', lty = 2) +
+              geom_text(aes(2, averageRange, label = "MEAN"), colour = "grey", vjust = "top", nudge_y = -0.1, check_overlap = TRUE, size = labelsSize, alpha = 0.8)
+
+            gg <- gg +
+              geom_hline(yintercept = url, col = 'red') +
+              geom_text(aes(2, url, label = "URL"), colour = "red", vjust = "bottom", nudge_y = 0.1, check_overlap = TRUE, size = labelsSize, alpha = 0.8)
+
 
             gg <- gg + theme(legend.position = "none") + ylim(graphLimits)
 
             print(gg)
-
           })

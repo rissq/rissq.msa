@@ -4,11 +4,11 @@
 \alias{plotGridMeanChart}
 \title{Mean Chart with ggplot2}
 \usage{
-\S4method{ggplotMeanChart}{BaseMSA}(object)
+\S4method{ggplotMeanChart}{BaseMSA}(object, gridLayout = FALSE, ...)
 
-\S4method{ggplotMeanChart}{CrossedMSA}(object)
+\S4method{ggplotMeanChart}{CrossedMSA}(object, gridLayout = FALSE, ...)
 
-\S4method{ggplotMeanChart}{NestedMSA}(object)
+\S4method{ggplotMeanChart}{NestedMSA}(object, gridLayout = FALSE, ...)
 }
 \description{
 Mean Chart with ggplot2

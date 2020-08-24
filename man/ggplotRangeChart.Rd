@@ -5,13 +5,13 @@
 \alias{ggplotRangeChart}
 \title{Generic for plotting Range Chart with ggplot2}
 \usage{
-ggplotRangeChart(object)
+ggplotRangeChart(object, ...)
 
-\S4method{ggplotRangeChart}{BaseMSA}(object)
+\S4method{ggplotRangeChart}{BaseMSA}(object, gridLayout = FALSE, ...)
 
-\S4method{ggplotRangeChart}{CrossedMSA}(object)
+\S4method{ggplotRangeChart}{CrossedMSA}(object, gridLayout = FALSE, ...)
 
-\S4method{ggplotRangeChart}{NestedMSA}(object)
+\S4method{ggplotRangeChart}{NestedMSA}(object, gridLayout = FALSE, ...)
 }
 \description{
 Generic for plotting Range Chart with ggplot2
