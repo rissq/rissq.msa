@@ -7,15 +7,15 @@ setMethod("initialize",
           signature = signature(.Object = "MSA"),
           function(.Object, ..., id, name, description, pro, characteristic, data, tolerance, sigma, alphaLim) {
 
-            if(missing(tolerance)) {
+            if(missing(tolerance) || is.na(tolerance)) {
               tolerance = characteristic@U - characteristic@L
             }
 
-            if(missing(sigma)) {
+            if(missing(sigma) || is.na(sigma)) {
               sigma = 6
             }
 
-            if(missing(alphaLim)) {
+            if(missing(alphaLim) || is.na(alphaLim)) {
               alphaLim = 0.05
             }
 

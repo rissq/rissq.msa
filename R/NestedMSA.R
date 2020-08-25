@@ -23,11 +23,11 @@ setMethod("initialize",
             .Object <- callNextMethod(.Object, ..., id = id, name = name, description = description, pro = pro, characteristic = characteristic, data = data, tolerance = tolerance, sigma = sigma, alphaLim = alphaLim, lvlPart = lvlPart, lvlAppr = lvlAppr, n = n)
 
             #If data is ready calculations are made on the initialization method call
-            if (missing(pro)) {
+            if (missing(pro) || is.na(pro)) {
               message("[NestedMSA: validation] .Pro to be analysed is not presented. Anova and R&R methods must be executed manually after getting it." )
-            } else if (missing(characteristic)) {
+            } else if (missing(characteristic) || is.na(characteristic)) {
               message("[NestedMSA: validation] .Characteristic to be analysed is not presented. Anova and R&R methods must be executed manually after getting it." )
-            } else if (missing(data)) {
+            } else if (missing(data) || is.na(data)) {
               message("[NestedMSA: validation] .ProData to be analysed is not presented. Anova and R&R methods must be executed manually after getting it." )
             } else {
               .Object <- anovaMSA(.Object)
