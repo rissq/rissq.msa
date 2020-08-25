@@ -238,15 +238,13 @@ setMethod("ggplotVariableByPartChart",
 
             meanByPart <- aggregate(f, data = object@data@data, mean)
 
-            show(meanByPart)
-
-            show(object@data@data)
-
             gg <- ggplot(data = object@data@data, aes_string(x=part, y=variable, group = 1, color = part)) +
               geom_point() +
               labs(title=paste(variable, "by", part), x=part, y=variable)
 
             gg <- gg + geom_line(data = meanByPart, aes_string(x=part, y=variable, group = 1), colour = "grey")
+
+            gg <- gg + theme(legend.position = "none")
 
             print(gg)
           })
@@ -296,6 +294,8 @@ setMethod("ggplotVariableByAppraiserChart",
 
             gg <- gg + geom_line(data = meanByPart, aes_string(x=appraiser, y=variable, group = 1), colour = "grey")
 
+            gg <- gg + theme(legend.position = "none")
+
             print(gg)
           })
 
@@ -325,8 +325,8 @@ setMethod("plotMeanChart",
 
             meanbar <- mean(object@data@data[[variable]], na.rm = TRUE)
 
-            ucl <- meanbar + (3/(ss.cc.getd2(object@n)*sqrt(object@n)))*averageRange
-            lcl <- meanbar - (3/(ss.cc.getd2(object@n)*sqrt(object@n)))*averageRange
+            ucl <- meanbar + (3/(d2(object@n)*sqrt(object@n)))*averageRange
+            lcl <- meanbar - (3/(d2(object@n)*sqrt(object@n)))*averageRange
 
             graphLimits <- c(min(range(xmean[[variable]])[1], lcl),
                              max(range(xmean[[variable]])[2], ucl)) +
@@ -371,7 +371,7 @@ setMethod("plotMeanChart",
           })
 
 #' Mean Chart with ggplot2
-#' @name plotGridMeanChart
+#' @name ggplotMeanChart
 #' @export
 setMethod("ggplotMeanChart",
           signature = signature(object = "BaseMSA"),
@@ -396,18 +396,15 @@ setMethod("ggplotMeanChart",
 
             meanbar <- mean(object@data@data[[variable]], na.rm = TRUE)
 
-            ucl <- meanbar + (3/(ss.cc.getd2(object@n)*sqrt(object@n)))*averageRange
-            lcl <- meanbar - (3/(ss.cc.getd2(object@n)*sqrt(object@n)))*averageRange
+            ucl <- meanbar + (3/(d2(object@n)*sqrt(object@n)))*averageRange
+            lcl <- meanbar - (3/(d2(object@n)*sqrt(object@n)))*averageRange
 
             graphLimits <- c(min(range(xmean[[variable]])[1], lcl),
                              max(range(xmean[[variable]])[2], ucl)) +
               c(-1, 1) * 0.1* diff(range(xmean[[variable]]))
 
-
             ## Plotting
             distinctAppraisers <- unique(xmean[[appraiser]])
-
-            print(xmean)
 
             gg <- ggplot(data = xmean, aes_string(x=part, y=variable, group = 1, color=appraiser)) +
               geom_point() +
@@ -462,8 +459,8 @@ setMethod("plotRangeChart",
 
             averageRange <- mean(xrange[[variable]])
 
-            d3 <- ss.cc.getd3(object@n)
-            d2 <- ss.cc.getd2(object@n)
+            d3 <- d3(object@n)
+            d2 <- d2(object@n)
 
             ## Range limits
             url <- averageRange*(1 + 3 * (d3/d2))
@@ -476,8 +473,6 @@ setMethod("plotRangeChart",
 
             ## Ploting
             distinctAppraisers <- unique(xrange[[appraiser]])
-            minX <- min(xrange[[variable]])
-            maxX <- max(xrange[[variable]])
 
             ## Save te previous layout to restore it after printing the plot
             par_temp = par()
@@ -537,8 +532,8 @@ setMethod("ggplotRangeChart",
 
             averageRange <- mean(xrange[[variable]])
 
-            d3 <- ss.cc.getd3(object@n)
-            d2 <- ss.cc.getd2(object@n)
+            d3 <- d3(object@n)
+            d2 <- d2(object@n)
 
             ## Range limits
             url <- averageRange*(1 + 3 * (d3/d2))
@@ -566,7 +561,7 @@ setMethod("ggplotRangeChart",
 
             gg <- gg +
               geom_hline(yintercept = averageRange, col = 'grey', lty = 2) +
-              geom_text(aes(2, averageRange, label = "MEAN"), colour = "grey", vjust = "top", nudge_y = -0.1, size = labelsSize, size = labelsSize, alpha = 0.8)
+              geom_text(aes(2, averageRange, label = "MEAN"), colour = "grey", vjust = "top", nudge_y = -0.1, size = labelsSize, alpha = 0.8)
 
             gg <- gg +
               geom_hline(yintercept = url, col = 'red') +

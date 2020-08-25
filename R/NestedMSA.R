@@ -324,8 +324,8 @@ setMethod("plotMeanChart",
 
             meanbar <- mean(object@data@data[[variable]], na.rm = TRUE)
 
-            ucl <- meanbar + (3/(ss.cc.getd2(object@n)*sqrt(object@n)))*averageRange
-            lcl <- meanbar - (3/(ss.cc.getd2(object@n)*sqrt(object@n)))*averageRange
+            ucl <- meanbar + (3/(d2(object@n)*sqrt(object@n)))*averageRange
+            lcl <- meanbar - (3/(d2(object@n)*sqrt(object@n)))*averageRange
 
             graphLimits <- c(min(range(xmean[[variable]])[1], lcl),
                          max(range(xmean[[variable]])[2], ucl)) +
@@ -394,8 +394,8 @@ setMethod("ggplotMeanChart",
 
             meanbar <- mean(object@data@data[[variable]], na.rm = TRUE)
 
-            ucl <- meanbar + (3/(ss.cc.getd2(object@n)*sqrt(object@n)))*averageRange
-            lcl <- meanbar - (3/(ss.cc.getd2(object@n)*sqrt(object@n)))*averageRange
+            ucl <- meanbar + (3/(d2(object@n)*sqrt(object@n)))*averageRange
+            lcl <- meanbar - (3/(d2(object@n)*sqrt(object@n)))*averageRange
 
             graphLimits <- c(min(range(xmean[[variable]])[1], lcl),
                              max(range(xmean[[variable]])[2], ucl)) +
@@ -456,8 +456,8 @@ setMethod("plotRangeChart",
 
             averageRange <- mean(xrange[[variable]])
 
-            d3 <- ss.cc.getd3(object@n)
-            d2 <- ss.cc.getd2(object@n)
+            d3 <- d3(object@n)
+            d2 <- d2(object@n)
 
             ## Range limits
             url <- averageRange*(1 + 3 * (d3/d2))
@@ -528,8 +528,8 @@ setMethod("ggplotRangeChart",
 
             averageRange <- mean(xrange[[variable]])
 
-            d3 <- ss.cc.getd3(object@n)
-            d2 <- ss.cc.getd2(object@n)
+            d3 <- d3(object@n)
+            d2 <- d2(object@n)
 
             ## Range limits
             url <- averageRange*(1 + 3 * (d3/d2))

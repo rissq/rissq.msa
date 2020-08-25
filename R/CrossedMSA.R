@@ -278,7 +278,6 @@ setMethod("ggplotComponentOfVariationChart",
               colnames(toleranceVarData) <- c("Component", "Value", "Rate")
 
               data <- rbind.data.frame(contributionData, studyVarData, toleranceVarData)
-
             } else {
               data <- rbind.data.frame(contributionData, studyVarData)
             }
@@ -332,15 +331,13 @@ setMethod("ggplotVariableByPartChart",
 
             meanByPart <- aggregate(f, data = object@data@data, mean)
 
-            show(meanByPart)
-
-            show(object@data@data)
-
             gg <- ggplot(data = object@data@data, aes_string(x=part, y=variable, group = 1, color = part)) +
               geom_point() +
               labs(title=paste(variable, "by", part), x=part, y=variable)
 
             gg <- gg + geom_line(data = meanByPart, aes_string(x=part, y=variable, group = 1), colour = "grey")
+
+            gg <- gg + theme(legend.position = "none")
 
             print(gg)
           })
@@ -382,15 +379,13 @@ setMethod("ggplotVariableByAppraiserChart",
 
             meanByPart <- aggregate(f, data = object@data@data, mean)
 
-            show(meanByPart)
-
-            show(object@data@data)
-
             gg <- ggplot(data = object@data@data, aes_string(x=appraiser, y=variable, group = 1, color = appraiser)) +
               geom_point() +
               labs(title=paste(variable, "by", appraiser), x=appraiser, y=variable)
 
             gg <- gg + geom_line(data = meanByPart, aes_string(x=appraiser, y=variable, group = 1), colour = "grey")
+
+            gg <- gg + theme(legend.position = "none")
 
             print(gg)
           })
@@ -458,6 +453,8 @@ setMethod("ggplotInteractionChart",
 
             agregatedData <- aggregate(f, data = object@data@data, mean)
 
+            agregatedData[[appraiser]] <- factor(agregatedData[[appraiser]])
+
             minY <- min(agregatedData[[variable]]) - 0.1 * diff(range(agregatedData[[variable]]))
             maxY <- max(agregatedData[[variable]]) + 0.1 * diff(range(agregatedData[[variable]]))
 
@@ -497,15 +494,12 @@ setMethod("plotMeanChart",
 
             meanbar <- mean(object@data@data[[variable]], na.rm = TRUE)
 
-            ucl <- meanbar + (3/(ss.cc.getd2(object@n)*sqrt(object@n)))*averageRange
-            lcl <- meanbar - (3/(ss.cc.getd2(object@n)*sqrt(object@n)))*averageRange
+            ucl <- meanbar + (3/(d2(object@n)*sqrt(object@n)))*averageRange
+            lcl <- meanbar - (3/(d2(object@n)*sqrt(object@n)))*averageRange
 
             graphLimits <- c(min(range(xmean[[variable]])[1], lcl),
                              max(range(xmean[[variable]])[2], ucl)) +
               c(-1, 1) * 0.1* diff(range(xmean[[variable]]))
-
-            ## Formula for chart
-            #chartf <- as.formula(paste(variable, "~", part))
 
             ## Plotting
             distinctAppraisers <- unique(xmean[[appraiser]])
@@ -570,18 +564,15 @@ setMethod("ggplotMeanChart",
 
             meanbar <- mean(object@data@data[[variable]], na.rm = TRUE)
 
-            ucl <- meanbar + (3/(ss.cc.getd2(object@n)*sqrt(object@n)))*averageRange
-            lcl <- meanbar - (3/(ss.cc.getd2(object@n)*sqrt(object@n)))*averageRange
+            ucl <- meanbar + (3/(d2(object@n)*sqrt(object@n)))*averageRange
+            lcl <- meanbar - (3/(d2(object@n)*sqrt(object@n)))*averageRange
 
             graphLimits <- c(min(range(xmean[[variable]])[1], lcl),
                              max(range(xmean[[variable]])[2], ucl)) +
               c(-1, 1) * 0.1* diff(range(xmean[[variable]]))
 
-
             ## Plotting
             distinctAppraisers <- unique(xmean[[appraiser]])
-
-            print(xmean)
 
             gg <- ggplot(data = xmean, aes_string(x=part, y=variable, group = 1, color=appraiser)) +
               geom_point() +
@@ -610,7 +601,6 @@ setMethod("ggplotMeanChart",
             gg <- gg + theme(legend.position = "none") + ylim(graphLimits)
 
             print(gg)
-
           })
 
 #' Range Chart
@@ -636,8 +626,8 @@ setMethod("plotRangeChart",
 
             averageRange <- mean(xrange[[variable]])
 
-            d3 <- ss.cc.getd3(object@n)
-            d2 <- ss.cc.getd2(object@n)
+            d3 <- d3(object@n)
+            d2 <- d2(object@n)
 
             ## Range limits
             url <- averageRange*(1 + 3 * (d3/d2))
@@ -650,8 +640,6 @@ setMethod("plotRangeChart",
 
             ## Ploting
             distinctAppraisers <- unique(xrange[[appraiser]])
-            minX <- min(xrange[[variable]])
-            maxX <- max(xrange[[variable]])
 
             ## Save te previous layout to restore it after printing the plot
             par_temp = par()
@@ -710,8 +698,8 @@ setMethod("ggplotRangeChart",
 
             averageRange <- mean(xrange[[variable]])
 
-            d3 <- ss.cc.getd3(object@n)
-            d2 <- ss.cc.getd2(object@n)
+            d3 <- d3(object@n)
+            d2 <- d2(object@n)
 
             ## Range limits
             url <- averageRange*(1 + 3 * (d3/d2))
@@ -752,5 +740,4 @@ setMethod("ggplotRangeChart",
             gg <- gg + theme(legend.position = "none") + ylim(graphLimits)
 
             print(gg)
-
           })
