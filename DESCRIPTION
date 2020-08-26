@@ -12,7 +12,6 @@ License: GPL (>= 2)
 Encoding: UTF-8
 LazyData: true
 Imports:
-  rissq,
   ggplot2,
   gridExtra
 RoxygenNote: 7.1.1
