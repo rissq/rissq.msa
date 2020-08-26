@@ -59,14 +59,18 @@ setMethod("anovaMSA",
             variable <- headers[3]
 
             ## Complete model (with interaction)
-            modelf <- as.formula(paste(variable, "~", appraiser, "*", part))
+            modelf <- as.formula(paste(variable, "~", part, "*", appraiser))
 
             model <- aov(modelf, data = object@data@data)
             modelm <- summary(model)
 
             #
-            # HERE WILL BE ERROR TERM IMPLEMENTATION
+            # ERROR TERM IMPLEMENTATION
             #
+            modelm[[1]][1:2, 4] <- modelm[[1]][1:2, 3]/modelm[[1]][3, 3]
+            modelm[[1]][1:2, 5] <- pf(modelm[[1]][1:2, 4],
+                                      modelm[[1]][1:2, 1],
+                                      modelm[[1]][3, 1], lower.tail = FALSE)
 
             rownames(modelm[[1]])[4] <- "REPEATIBILITY"
 
@@ -122,21 +126,39 @@ setMethod("rar",
 
             object@varianceComponents = matrix(ncol = 6, nrow = 7)
 
-            rownames(object@varianceComponents) <- c("Total Gage R&R", "  Repeatability", "  Reproducibility", paste("Reproducibility by ", appraiser), paste("Reproducibility by ", part, ":", appraiser), "Part-To-Part", "Total Variation")
+            rownames(object@varianceComponents) <- c("Total Gage R&R", "  Repeatability", "  Reproducibility", paste("    Reproducibility by", appraiser), paste("    Reproducibility by ", part, ":", appraiser), "Part-To-Part", "Total Variation")
 
             colnames(object@varianceComponents) <- c("VarComp", "%Contrib", "StdDev", "StudyVar", "%StudyVar", "%Tolerance")
 
+            ## If reduced model, remove interaction
+            p <- object@anova[[1]][3, 5]
+
             ## Variance Components Table
-            #Repeatibility
-            object@varianceComponents[2, 1] <- object@anova[[1]][4, 3]
-            #Appraiser reproducibility
-            object@varianceComponents[4, 1] <- max(c((object@anova[[1]][2, 3] - object@anova[[1]][3, 3])/(object@lvlPart * object@n), 0))
-            #Part:Appraiser reproducibility
-            object@varianceComponents[5, 1] <- max(c((object@anova[[1]][3, 3] - object@anova[[1]][4, 3])/object@n, 0))
-            #Total reproducibility
-            object@varianceComponents[3, 1] <- object@varianceComponents[4, 1] + object@varianceComponents[5, 1]
-            #Part to part
-            object@varianceComponents[6, 1] <- max(c((object@anova[[1]][1, 3] - object@anova[[1]][3, 3]) / (object@lvlAppr / object@n), 0))
+
+            if (p > object@alphaLim) {
+              #Repeatibility
+              object@varianceComponents[2, 1] <- object@anovaReduced[[1]][3, 3]
+              #Appraiser reproducibility
+              object@varianceComponents[4, 1] <- max(c((object@anovaReduced[[1]][2, 3] - object@anovaReduced[[1]][3, 3])/(object@lvlPart * object@n), 0))
+              #Part:Appraiser reproducibility
+              object@varianceComponents[5, 1] <- NA
+              #Total reproducibility
+              object@varianceComponents[3, 1] <- object@varianceComponents[4, 1]
+              #Part to part
+              object@varianceComponents[6, 1] <- max(c((object@anovaReduced[[1]][1, 3] - object@anovaReduced[[1]][3, 3]) / (object@lvlAppr * object@n), 0))
+            } else {
+              #Repeatibility
+              object@varianceComponents[2, 1] <- object@anova[[1]][4, 3]
+              #Appraiser reproducibility
+              object@varianceComponents[4, 1] <- max(c((object@anova[[1]][2, 3] - object@anova[[1]][3, 3])/(object@lvlPart * object@n), 0))
+              #Part:Appraiser reproducibility
+              object@varianceComponents[5, 1] <- max(c((object@anova[[1]][3, 3] - object@anova[[1]][4, 3])/object@n, 0))
+              #Total reproducibility
+              object@varianceComponents[3, 1] <- object@varianceComponents[4, 1] + object@varianceComponents[5, 1]
+              #Part to part
+              object@varianceComponents[6, 1] <- max(c((object@anova[[1]][1, 3] - object@anova[[1]][3, 3]) / (object@lvlAppr * object@n), 0))
+            }
+
             #Totat Gage rar
             object@varianceComponents[1, 1] <- object@varianceComponents[2, 1] + object@varianceComponents[3, 1]
             #Total variation
@@ -155,9 +177,6 @@ setMethod("rar",
 
             #Number of distinct categories
             object@numberCategories <- max(c(1, floor((object@varianceComponents[6, 4]/object@varianceComponents[1, 4])*1.41)))
-
-            ## If reduced model, remove interaction
-            p <- object@anova[[1]][3, 5]
 
             if (p > object@alphaLim){
               object@varianceComponents <- object@varianceComponents[-c(5), ]

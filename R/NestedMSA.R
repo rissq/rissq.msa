@@ -55,8 +55,12 @@ setMethod("anovaMSA",
             modelm <- summary(model)
 
             #
-            # HERE WILL BE ERROR TERM IMPLEMENTATION
+            # ERROR TERM IMPLEMENTATION
             #
+            modelm[[1]][1, 4] <- modelm[[1]][1, 3]/modelm[[1]][2, 3]
+            modelm[[1]][1, 5] <- pf(modelm[[1]][1, 4],
+                                    modelm[[1]][1, 1],
+                                    modelm[[1]][3, 1], lower.tail = FALSE)
 
             rownames(modelm[[1]])[3] <- "REPEATIBILITY"
 
