@@ -354,8 +354,10 @@ setMethod("plotVariableByPartChart",
             ## Formula for the chart
             f <- as.formula(paste(variable, "~",  part))
 
+            unitlab <- paste0(variable, " [", object@characteristic@units, "]")
+
             stripchart(f, data = object@data@data, vertical = TRUE,
-                               method = "overplot", main = paste(variable, "by", part), pch = 1)
+                               method = "overplot", main = paste(variable, "by", part), pch = 1, ylab = unitlab)
 
             grid()
           })
@@ -377,9 +379,11 @@ setMethod("ggplotVariableByPartChart",
 
             meanByPart <- aggregate(f, data = object@data@data, mean)
 
+            unitlab <- paste0(variable, " [", object@characteristic@units, "]")
+
             gg <- ggplot(data = object@data@data, aes_string(x=part, y=variable, group = 1, color = part)) +
               geom_point() +
-              labs(title=paste(variable, "by", part), x=part, y=variable)
+              labs(title=paste(variable, "by", part), x=part, y=unitlab)
 
             gg <- gg + geom_line(data = meanByPart, aes_string(x=part, y=variable, group = 1), colour = "grey")
 
@@ -402,8 +406,10 @@ setMethod("plotVariableByAppraiserChart",
             ## Formula for the chart
             f <- as.formula(paste(variable, "~",  appraiser))
 
+            unitlab <- paste0(variable, " [", object@characteristic@units, "]")
+
             stripchart(f, data = object@data@data, vertical = TRUE,
-                               method = "overplot", main = paste(variable, "by", appraiser), pch = 1)
+                               method = "overplot", main = paste(variable, "by", appraiser), pch = 1, ylab = unitlab)
 
             grid()
           })
@@ -425,9 +431,11 @@ setMethod("ggplotVariableByAppraiserChart",
 
             meanByPart <- aggregate(f, data = object@data@data, mean)
 
+            unitlab <- paste0(variable, " [", object@characteristic@units, "]")
+
             gg <- ggplot(data = object@data@data, aes_string(x=appraiser, y=variable, group = 1, color = appraiser)) +
               geom_point() +
-              labs(title=paste(variable, "by", appraiser), x=appraiser, y=variable)
+              labs(title=paste(variable, "by", appraiser), x=appraiser, y=unitlab)
 
             gg <- gg + geom_line(data = meanByPart, aes_string(x=appraiser, y=variable, group = 1), colour = "grey")
 
@@ -458,6 +466,8 @@ setMethod("plotInteractionChart",
 
             distinctAppraisers <- unique(agregatedData[[appraiser]])
 
+            unitlab <- paste0(variable, " [", object@characteristic@units, "]")
+
             for (i in seq_along(distinctAppraisers)) {
               filterIndexs <- agregatedData[,1] == distinctAppraisers[[i]]
 
@@ -467,7 +477,7 @@ setMethod("plotInteractionChart",
               dataX <- as.numeric(levels(data[[part]]))[data[[part]]]
 
               if (i == 1) {
-                plot(x = dataX, y = data[[variable]], ylim = c(minY, maxY), xaxt = "n", type = "b", pch = i, lty = i, ylab = paste(variable), xlab = paste(part))
+                plot(x = dataX, y = data[[variable]], ylim = c(minY, maxY), xaxt = "n", type = "b", pch = i, lty = i, ylab = paste(unitlab), xlab = paste(part))
                 axis(1, seq_along(data[[part]]), data[[part]])
 
                 title(paste0(part, ":", appraiser, " Interaction"), line = -2, outer = TRUE, font = 2)
@@ -504,10 +514,12 @@ setMethod("ggplotInteractionChart",
             minY <- min(agregatedData[[variable]]) - 0.1 * diff(range(agregatedData[[variable]]))
             maxY <- max(agregatedData[[variable]]) + 0.1 * diff(range(agregatedData[[variable]]))
 
+            unitlab <- paste0(variable, " [", object@characteristic@units, "]")
+
             gg <- ggplot(data = agregatedData, aes_string(x=part, y=variable, group = appraiser, color = appraiser)) +
               geom_point() +
               geom_line() +
-              labs(title=paste("Interaction Chart by", appraiser), x=part, y=variable)
+              labs(title=paste("Interaction Chart by", appraiser), x=part, y=unitlab)
 
             gg <- gg + ylim(c(minY, maxY))
 
@@ -554,6 +566,8 @@ setMethod("plotMeanChart",
             par_temp = par()
             par(mfrow = c(1, length(distinctAppraisers)), mar=c(5,4,7,2)+0.1, xpd=FALSE)
 
+            unitlab <- paste0(variable, " [", object@characteristic@units, "]")
+
             for (i in seq_along(distinctAppraisers)) {
               filterIndexs <- xmean[,1] == distinctAppraisers[[i]]
 
@@ -562,7 +576,7 @@ setMethod("plotMeanChart",
               ## To avoid boxplot to be printed instead of xyplot
               data[[part]] <- as.numeric(levels(data[[part]]))[data[[part]]]
 
-              plot(x = data[[part]], y = data[[variable]], ylim = graphLimits, type = "b", pch = 1, ylab = paste(variable), xlab = paste(part), col = "blue")
+              plot(x = data[[part]], y = data[[variable]], ylim = graphLimits, type = "b", pch = 1, ylab = paste(unitlab), xlab = paste(part), col = "blue")
 
               title(distinctAppraisers[[i]], line = 1)
 
@@ -620,11 +634,13 @@ setMethod("ggplotMeanChart",
             ## Plotting
             distinctAppraisers <- unique(xmean[[appraiser]])
 
+            unitlab <- paste0(variable, " [", object@characteristic@units, "]")
+
             gg <- ggplot(data = xmean, aes_string(x=part, y=variable, group = 1, color=appraiser)) +
               geom_point() +
               geom_line() +
               facet_wrap(as.formula(paste("~", appraiser)), ncol=length(distinctAppraisers), drop=TRUE) +
-              labs(title=paste("Mean Chart by", appraiser), x=part, y=variable)
+              labs(title=paste("Mean Chart by", appraiser), x=part, y=unitlab)
 
             if(gridLayout == TRUE) {
               labelsSize = 2
@@ -691,6 +707,8 @@ setMethod("plotRangeChart",
             par_temp = par()
             par(mfrow = c(1, length(distinctAppraisers)), mar=c(5,4,7,2)+0.1, xpd=FALSE)
 
+            unitlab <- paste0(variable, " [", object@characteristic@units, "]")
+
             for (i in seq_along(distinctAppraisers)) {
               filterIndexs <- xrange[,1] == distinctAppraisers[[i]]
 
@@ -699,7 +717,7 @@ setMethod("plotRangeChart",
               ## To avoid boxplot to be printed instead of xyplot
               data[[part]] <- as.numeric(levels(data[[part]]))[data[[part]]]
 
-              plot(x = data[[part]], y = data[[variable]], ylim = graphLimits, type = "b", pch = 1, ylab = paste(variable), xlab = paste(part), col = "blue")
+              plot(x = data[[part]], y = data[[variable]], ylim = graphLimits, type = "b", pch = 1, ylab = paste(unitlab), xlab = paste(part), col = "blue")
 
               title(distinctAppraisers[[i]], line = 1)
 
@@ -759,11 +777,13 @@ setMethod("ggplotRangeChart",
             ## Ploting
             distinctAppraisers <- unique(xrange[[appraiser]])
 
+            unitlab <- paste0(variable, " [", object@characteristic@units, "]")
+
             gg <- ggplot(data = xrange, aes_string(x=part, y=variable, group = 1, color=appraiser)) +
               geom_point() +
               geom_line() +
               facet_wrap(as.formula(paste("~", appraiser)), ncol=length(distinctAppraisers), drop=TRUE) +
-              labs(title=paste("Range Chart by", appraiser), x=part, y=variable)
+              labs(title=paste("Range Chart by", appraiser), x=part, y=unitlab)
 
             if(gridLayout == TRUE) {
               labelsSize = 2
