@@ -53,5 +53,5 @@ setMethod("plotRar",
             g2 <- cowplot::ggdraw(g) +
               theme(plot.background = element_rect(fill="white", color = NA))
 
-            plot(g2)
+            return(plot(g2))
           })

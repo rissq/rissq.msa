@@ -9,8 +9,8 @@ setMethod("initialize",
 
             headers <- names(data@data)
 
-            part <- as.factor(headers[1])
-            appraiser <- as.factor(headers[2])
+            part <- headers[1]
+            appraiser <- headers[2]
 
             data@data[[part]] <- factor(data@data[[part]])
             data@data[[appraiser]] <- factor(data@data[[appraiser]])
@@ -574,5 +574,5 @@ setMethod("ggplotRangeChart",
 
             gg <- gg + theme(legend.position = "none") + ylim(graphLimits)
 
-            print(gg)
+            return(gg)
           })
