@@ -1,3 +1,5 @@
+
+
 #' Generic for Anova MSA Study.
 #' @name anovaMSA
 #' @export

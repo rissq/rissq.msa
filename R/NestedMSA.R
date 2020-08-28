@@ -202,7 +202,7 @@ setMethod("ggplotComponentOfVariationChart",
               geom_hline(yintercept = 10, lty = 2, col = "grey") +
               geom_hline(yintercept = 30, lty = 2, col = "grey")
 
-            print(gg)
+            return(plot(gg))
           })
 
 #' Variable by Part
@@ -251,7 +251,7 @@ setMethod("ggplotVariableByPartChart",
 
             gg <- gg + theme(legend.position = "none")
 
-            print(gg)
+            return(plot(gg))
           })
 
 #' Variable by Appraiser
@@ -299,7 +299,7 @@ setMethod("ggplotVariableByAppraiserChart",
 
             gg <- gg + theme(legend.position = "none")
 
-            print(gg)
+            return(plot(gg))
           })
 
 #' Mean Chart
@@ -434,7 +434,7 @@ setMethod("ggplotMeanChart",
 
             gg <- gg + theme(legend.position = "none") + ylim(graphLimits)
 
-            print(gg)
+            return(plot(gg))
           })
 
 #' Range Chart
@@ -574,5 +574,5 @@ setMethod("ggplotRangeChart",
 
             gg <- gg + theme(legend.position = "none") + ylim(graphLimits)
 
-            return(gg)
+            return(plot(gg))
           })

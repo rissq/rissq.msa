@@ -46,6 +46,33 @@ setMethod("initialize",
             }
           })
 
+#' Summarize a MSA object
+#' @name summary
+#' @export
+setMethod("summary", signature(object = "CrossedMSA"), function(object, ...) {
+
+  cat("Analysis, ", object@name)
+  cat("\n", "ID, ", object@id)
+  cat("\n", "Description, ", object@description)
+  cat("\n")
+  cat("\n", "Levels part, ", object@lvlPart)
+  cat("\n", "Levels appraiser, ", object@lvlAppr)
+  cat("\n", "N, ", object@n)
+  cat("\n")
+  cat("\n", "Complete model:\n")
+  print(object@anova[[1]])
+  cat("\n", "Alpha for removing interaction, ", object@alphaLim)
+  cat("\n")
+  cat("\n", "Reduced model, without interaction:\n")
+  print(object@anovaReduced[[1]])
+  cat("\n")
+  cat("\n", "Gage R&R:\n")
+  print(object@varianceComponents)
+  cat("\n", "Number of distinct categories, ", object@numberCategories)
+  cat("\n")
+
+})
+
 #' Anova study for Crossed MSA
 #' @name anovaMSA
 #' @export
@@ -211,7 +238,7 @@ setMethod("plotRar",
             g2 <- cowplot::ggdraw(g) +
               theme(plot.background = element_rect(fill="white", color = NA))
 
-            plot(g2)
+            return(plot(g2))
           })
 
 #' Components of Variation Chart
@@ -309,7 +336,7 @@ setMethod("ggplotComponentOfVariationChart",
               geom_hline(yintercept = 10, lty = 2, col = "grey") +
               geom_hline(yintercept = 30, lty = 2, col = "grey")
 
-            print(gg)
+            return(plot(gg))
           })
 
 #' Variable by Part
@@ -358,7 +385,7 @@ setMethod("ggplotVariableByPartChart",
 
             gg <- gg + theme(legend.position = "none")
 
-            print(gg)
+            return(plot(gg))
           })
 
 #' Variable by Appraiser
@@ -406,7 +433,7 @@ setMethod("ggplotVariableByAppraiserChart",
 
             gg <- gg + theme(legend.position = "none")
 
-            print(gg)
+            return(plot(gg))
           })
 
 #' Interaction
@@ -484,7 +511,7 @@ setMethod("ggplotInteractionChart",
 
             gg <- gg + ylim(c(minY, maxY))
 
-            print(gg)
+            return(plot(gg))
           })
 
 #' Mean Chart
@@ -619,7 +646,7 @@ setMethod("ggplotMeanChart",
 
             gg <- gg + theme(legend.position = "none") + ylim(graphLimits)
 
-            print(gg)
+            return(plot(gg))
           })
 
 #' Range Chart
@@ -758,5 +785,5 @@ setMethod("ggplotRangeChart",
 
             gg <- gg + theme(legend.position = "none") + ylim(graphLimits)
 
-            print(gg)
+            return(plot(gg))
           })

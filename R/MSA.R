@@ -22,11 +22,35 @@ setMethod("initialize",
             callNextMethod(.Object, ..., id = id, name = name, description = description, pro = pro, characteristic = characteristic, data = data, tolerance = tolerance, sigma = sigma, alphaLim = alphaLim)
           })
 
-
 setMethod("show", "MSA", function(object) {
 
   callNextMethod(object)
 })
+
+#' Summarize a MSA object
+#' @name summary
+#' @export
+setMethod("summary", "MSA", function(object, ...) {
+
+  cat("Analysis, ", object@name)
+  cat("\n", "ID, ", object@id)
+  cat("\n", "Description, ", object@description)
+  cat("\n")
+  cat("\n", "Levels part, ", object@lvlPart)
+  cat("\n", "Levels appraiser, ", object@lvlAppr)
+  cat("\n", "N, ", object@n)
+  cat("\n")
+  cat("\n", "Complete model:\n")
+  print(object@anova[[1]])
+  cat("\n", "Alpha for removing interaction, ", object@alphaLim)
+  cat("\n")
+  cat("\n", "Gage R&R:\n")
+  print(object@varianceComponents)
+  cat("\n", "Number of distinct categories, ", object@numberCategories)
+  cat("\n")
+
+})
+
 
 #' Plot rar resume
 #' @name plotRar
